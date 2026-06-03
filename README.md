@@ -6,6 +6,8 @@ single glance tells you who's running, who needs you, and who's idle.
 
 Native macOS app. Local-only. Read-only. No account, no telemetry.
 
+![Claude StandUp](docs/screenshot.jpg)
+
 ## Why
 
 When you run several Claude Code sessions at once, it's easy to lose track of what

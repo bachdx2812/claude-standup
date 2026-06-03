@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Claude StandUp — watch your Claude Code sessions as a lively office</title>
+    <meta
+      name="description"
+      content="A native macOS app that shows your active Claude Code sessions as a tiny office: one desk per session, live status, cost + context, and key decisions. Local-only, read-only, open source."
+    />
+    <style>
+      :root {
+        --bg: #0b0e14;
+        --panel: #121826;
+        --panel-2: #0e131e;
+        --border: #1f2632;
+        --text: #cbd5e1;
+        --muted: #64748b;
+        --accent: #34d399;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: radial-gradient(1200px 600px at 50% -10%, #14213050, transparent), var(--bg);
+        color: var(--text);
+        font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+        line-height: 1.6;
+      }
+      a { color: var(--accent); }
+      .wrap { max-width: 980px; margin: 0 auto; padding: 0 20px; }
+      header { text-align: center; padding: 72px 0 28px; }
+      .brand {
+        display: inline-flex; align-items: center; gap: 10px;
+        font-weight: 700; font-size: 22px; letter-spacing: 0.02em;
+      }
+      .dot { width: 11px; height: 11px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px var(--accent); }
+      h1 { font-size: 34px; margin: 20px 0 8px; letter-spacing: -0.01em; }
+      .tag { color: var(--muted); font-size: 16px; max-width: 640px; margin: 0 auto; }
+      .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 26px 0 8px; }
+      .btn {
+        text-decoration: none; padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 14px;
+        border: 1px solid var(--border); color: var(--text); background: var(--panel);
+      }
+      .btn.primary { background: linear-gradient(180deg, #15493a, #103027); border-color: rgba(52, 211, 153, 0.45); color: var(--accent); }
+      .shot { margin: 30px 0 10px; }
+      .shot img { width: 100%; border: 1px solid var(--border); border-radius: 12px; display: block; box-shadow: 0 24px 60px #0008; }
+      .badges { text-align: center; color: var(--muted); font-size: 12.5px; margin-top: 10px; }
+      section { padding: 40px 0; border-top: 1px solid var(--border); }
+      h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin: 0 0 18px; }
+      .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+      .card { background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+      .card h3 { margin: 0 0 6px; font-size: 14px; }
+      .card p { margin: 0; color: var(--muted); font-size: 13.5px; }
+      pre {
+        background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px;
+        padding: 14px 16px; overflow-x: auto; font-size: 13px; color: #e2e8f0;
+      }
+      .muted { color: var(--muted); font-size: 13px; }
+      footer { text-align: center; color: var(--muted); font-size: 13px; padding: 36px 0 60px; border-top: 1px solid var(--border); }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <div class="brand"><span class="dot"></span> Claude StandUp</div>
+        <h1>Watch your Claude Code sessions as a lively office</h1>
+        <p class="tag">
+          One desk per session, color-coded by state. You're the boss handing out work — a single
+          glance tells you who's running, who needs you, and who's idle.
+        </p>
+        <div class="cta">
+          <a class="btn primary" href="https://github.com/bachdx2812/claude-standup">View on GitHub</a>
+          <a class="btn" href="https://github.com/bachdx2812/claude-standup/releases">Download</a>
+        </div>
+        <div class="badges">macOS · local-only · read-only · open source (MIT)</div>
+      </header>
+
+      <div class="shot"><img src="screenshot.jpg" alt="Claude StandUp screenshot" /></div>
+
+      <section>
+        <h2>What you get</h2>
+        <div class="grid">
+          <div class="card"><h3>One desk per session</h3><p>A live status bubble — "Running tests", "Waiting for you", "Idle" — color-coded by state.</p></div>
+          <div class="card"><h3>You're the boss</h3><p>Every prompt you send beams to that agent's desk, so you remember what you asked each one to do.</p></div>
+          <div class="card"><h3>Cost &amp; context</h3><p>Per-session USD cost and a context-window HP bar, aware of the 200k vs 1M model windows.</p></div>
+          <div class="card"><h3>Key decisions</h3><p>Prompts answered, PRs opened, subagents spawned, commits, files written — a quiet timeline.</p></div>
+          <div class="card"><h3>Auto summaries</h3><p>A short rundown per session, generated locally by the <code>claude</code> CLI. No API key.</p></div>
+          <div class="card"><h3>Local &amp; private</h3><p>Reads <code>~/.claude</code> transcripts read-only. No telemetry, nothing leaves your machine.</p></div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Install</h2>
+        <p class="muted">Homebrew (after a release is published):</p>
+        <pre>brew tap bachdx2812/tap
+brew install --cask claude-standup</pre>
+        <p class="muted">Or build from source:</p>
+        <pre>git clone https://github.com/bachdx2812/claude-standup.git
+cd claude-standup
+pnpm install
+./scripts/build.sh   # → src-tauri/target/release/bundle/</pre>
+        <p class="muted">Requires macOS 10.15+, Rust (rustup stable), Node + pnpm. See the
+          <a href="https://github.com/bachdx2812/claude-standup#readme">README</a> for details.</p>
+      </section>
+
+      <footer>
+        Built with Tauri v2 · Rust · React · <a href="https://github.com/bachdx2812/claude-standup">github.com/bachdx2812/claude-standup</a>
+      </footer>
+    </div>
+  </body>
+</html>
