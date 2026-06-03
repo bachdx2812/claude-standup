@@ -16,3 +16,6 @@ src-tauri/gen/schemas/
 .claude/
 # local planning docs
 plans/
+# tauri mobile icons (macOS-only app)
+src-tauri/icons/android/
+src-tauri/icons/ios/
