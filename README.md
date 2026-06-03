@@ -129,6 +129,10 @@ Stack: **Tauri v2 · Rust · React 18 · TypeScript · Vite · Zustand · Canvas
 - No network calls beyond the local `claude` CLI you already use.
 - No telemetry.
 
+## Acknowledgements
+
+Inspired by [paulrobello/claude-office](https://github.com/paulrobello/claude-office).
+
 ## License
 
 [MIT](LICENSE)
