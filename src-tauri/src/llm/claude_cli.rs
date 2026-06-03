@@ -57,12 +57,16 @@ pub async fn summarize(prompt: &str, model: Option<&str>) -> Result<String, Stri
 /// The PATH from a login shell — GUI apps don't inherit the user's full PATH,
 /// which claude (a Node CLI) needs to find its runtime + itself.
 async fn login_path() -> Option<String> {
+    // Interactive login shell (`-lic`) so .zshrc — where PATH is commonly set
+    // (homebrew, node version managers, ~/.local/bin) — is sourced. Markers
+    // bracket the value so any shell-init noise on stdout is discarded.
     let out = Command::new("/bin/zsh")
-        .args(["-lc", "printf %s \"$PATH\""])
+        .args(["-lic", "printf 'CMPSTART%sCMPEND' \"$PATH\""])
         .output()
         .await
         .ok()?;
-    let p = String::from_utf8_lossy(&out.stdout).trim().to_string();
+    let s = String::from_utf8_lossy(&out.stdout);
+    let p = s.split("CMPSTART").nth(1)?.split("CMPEND").next()?.trim().to_string();
     if p.is_empty() {
         None
     } else {
@@ -79,13 +83,16 @@ async fn resolve_bin() -> Option<String> {
         }
     }
     if let Ok(out) = Command::new("/bin/zsh")
-        .args(["-lc", "command -v claude"])
+        .args(["-lic", "printf 'CMPSTART%sCMPEND' \"$(command -v claude)\""])
         .output()
         .await
     {
-        let path = String::from_utf8_lossy(&out.stdout).trim().to_string();
-        if !path.is_empty() && std::path::Path::new(&path).exists() {
-            return Some(path);
+        let s = String::from_utf8_lossy(&out.stdout);
+        if let Some(path) = s.split("CMPSTART").nth(1).and_then(|x| x.split("CMPEND").next()) {
+            let path = path.trim();
+            if !path.is_empty() && std::path::Path::new(path).exists() {
+                return Some(path.to_string());
+            }
         }
     }
     for candidate in [
