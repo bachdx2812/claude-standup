@@ -24,6 +24,13 @@ pub async fn summarize(prompt: &str, model: Option<&str>) -> Result<String, Stri
     let _ = std::fs::create_dir_all(&work);
     cmd.current_dir(&work);
 
+    // GUI apps launched from /Applications inherit only a minimal PATH, so the
+    // node runtime claude relies on isn't found ("claude not found in PATH").
+    // Give it the user's real login PATH.
+    if let Some(path) = login_path().await {
+        cmd.env("PATH", path);
+    }
+
     let output = cmd
         .output()
         .await
@@ -44,6 +51,22 @@ pub async fn summarize(prompt: &str, model: Option<&str>) -> Result<String, Stri
         Err("claude returned empty output".to_string())
     } else {
         Ok(text)
+    }
+}
+
+/// The PATH from a login shell — GUI apps don't inherit the user's full PATH,
+/// which claude (a Node CLI) needs to find its runtime + itself.
+async fn login_path() -> Option<String> {
+    let out = Command::new("/bin/zsh")
+        .args(["-lc", "printf %s \"$PATH\""])
+        .output()
+        .await
+        .ok()?;
+    let p = String::from_utf8_lossy(&out.stdout).trim().to_string();
+    if p.is_empty() {
+        None
+    } else {
+        Some(p)
     }
 }
 
