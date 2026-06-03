@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Header from "./components/Header";
 import SessionCard from "./components/SessionCard";
 import IsoOffice from "./components/IsoOffice";
 import DecisionTimeline from "./components/DecisionTimeline";
+import SessionSummary from "./components/SessionSummary";
 import { fetchSessions, onSessionsUpdate } from "./lib/tauri-events";
 import { useSessions } from "./store/sessions-store";
 import { contextPct, nowSec } from "./lib/format";
@@ -14,10 +15,31 @@ export default function App() {
   const [windowHours, setWindowHours] = useState(
     () => Number(localStorage.getItem("cm.windowHours")) || 3,
   );
+  // Resizable footer (detail bar) so you can size it to your content — no forced scrolling.
+  const [footerH, setFooterH] = useState(
+    () => Number(localStorage.getItem("cm.footerH")) || 300,
+  );
+  const footerHRef = useRef(footerH);
+  footerHRef.current = footerH;
 
   const changeWindow = (h: number) => {
     setWindowHours(h);
     localStorage.setItem("cm.windowHours", String(h));
+  };
+
+  const startResize = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const onMove = (ev: MouseEvent) => {
+      const h = Math.min(window.innerHeight * 0.72, Math.max(150, window.innerHeight - ev.clientY));
+      setFooterH(h);
+    };
+    const onUp = () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+      localStorage.setItem("cm.footerH", String(Math.round(footerHRef.current)));
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
   };
 
   useEffect(() => {
@@ -70,7 +92,7 @@ export default function App() {
               <IsoOffice sessions={visible} selected={selected} onSelect={setSelected} />
             )}
           </section>
-          {/* Right rail: session list only. */}
+          {/* Right rail: session list, with the selected session's summary below. */}
           <aside className="right">
             <div className="rail-head">Sessions · {visible.length}</div>
             {visible.length === 0 ? (
@@ -88,11 +110,13 @@ export default function App() {
                 ))}
               </div>
             )}
+            <SessionSummary session={selectedSession} />
           </aside>
         </div>
-        {/* Selected session detail: full-width bottom bar — only once you pick one. */}
+        {/* Selected session detail: full-width, drag-resizable bottom bar. */}
         {selectedSession && (
-          <div className="detail-bar">
+          <div className="detail-bar" style={{ height: footerH }}>
+            <div className="detail-resizer" onMouseDown={startResize} title="Drag to resize" />
             <DecisionTimeline session={selectedSession} />
           </div>
         )}

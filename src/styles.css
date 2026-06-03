@@ -188,7 +188,8 @@ body {
   background: var(--panel);
 }
 .rail-cards {
-  flex: 1;
+  flex: 0 1 auto;
+  max-height: 46%;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -197,6 +198,18 @@ body {
 }
 .rail-empty {
   padding: 12px;
+}
+/* Selected session's summary, below the list (seamless, same panel). */
+.rail-summary {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  border-top: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.16);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 /* ---- session grid + cards ---- */
@@ -413,11 +426,37 @@ body {
 /* ---- detail / decisions (full-width bottom bar) ---- */
 .detail-bar {
   flex: none;
-  height: 264px;
+  height: 300px;
   min-height: 0;
+  position: relative;
   border-top: 1px solid var(--border);
   background: var(--panel-2);
   display: flex;
+}
+/* Drag handle along the footer's top edge. */
+.detail-resizer {
+  position: absolute;
+  top: -3px;
+  left: 0;
+  right: 0;
+  height: 8px;
+  cursor: ns-resize;
+  z-index: 6;
+}
+.detail-resizer::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--border);
+  transition: background 0.15s;
+}
+.detail-resizer:hover::after {
+  background: var(--accent);
 }
 .detail {
   flex: 1;
@@ -433,28 +472,27 @@ body {
   text-align: center;
   padding: 12px 14px;
 }
-/* LEFT: identity + key decisions (the focus, gets the width). */
-.detail-main {
-  flex: 1;
-  min-width: 0;
+/* LEFT: session identity + latest command. */
+.detail-info {
+  flex: none;
+  width: 340px;
+  min-width: 280px;
   overflow-y: auto;
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   gap: 9px;
   padding: 12px 14px;
 }
-/* RIGHT: a small summary box. */
-.detail-side {
-  flex: none;
-  width: 340px;
-  min-width: 280px;
+/* CENTER: the key-decisions timeline (gets the width). */
+.detail-center {
+  flex: 1;
+  min-width: 0;
   overflow-y: auto;
-  border-left: 1px solid var(--border);
-  background: rgba(0, 0, 0, 0.18);
-  padding: 12px 14px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  padding: 12px 14px;
 }
 .detail-head {
   display: flex;

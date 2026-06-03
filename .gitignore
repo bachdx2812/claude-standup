@@ -14,3 +14,5 @@ src-tauri/gen/schemas/
 .DS_Store
 # CK stack local state
 .claude/
+# local planning docs
+plans/
