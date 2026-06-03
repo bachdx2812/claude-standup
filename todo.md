@@ -12,3 +12,5 @@ Planned work for Claude StandUp.
 - [ ] **Performance tuning** — profile the canvas render loop and transcript
       tailing; throttle redraws when idle, cap work per frame, and speed up
       large-transcript parsing.
+- [ ] **Vietnamese language support** — in-app i18n / localization (English +
+      Tiếng Việt).
