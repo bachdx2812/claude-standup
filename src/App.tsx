@@ -81,19 +81,8 @@ export default function App() {
       />
       <div className="app-body">
         <div className="app-main">
-          {/* HERO: the office fills the main area — pixel employees ARE the sessions. */}
-          <section className="office-stage">
-            {visible.length === 0 ? (
-              <div className="app-empty">
-                <p>No active sessions right now.</p>
-                <p className="muted">Start Claude Code in any project — it'll appear here.</p>
-              </div>
-            ) : (
-              <IsoOffice sessions={visible} selected={selected} onSelect={setSelected} />
-            )}
-          </section>
-          {/* Right rail: session list, with the selected session's summary below. */}
-          <aside className="right">
+          {/* LEFT: session list. */}
+          <aside className="left-rail">
             <div className="rail-head">Sessions · {visible.length}</div>
             {visible.length === 0 ? (
               <div className="rail-empty muted">None active.</div>
@@ -110,8 +99,24 @@ export default function App() {
                 ))}
               </div>
             )}
-            <SessionSummary session={selectedSession} />
           </aside>
+          {/* CENTER: the office hero — pixel employees ARE the sessions. */}
+          <section className="office-stage">
+            {visible.length === 0 ? (
+              <div className="app-empty">
+                <p>No active sessions right now.</p>
+                <p className="muted">Start Claude Code in any project — it'll appear here.</p>
+              </div>
+            ) : (
+              <IsoOffice sessions={visible} selected={selected} onSelect={setSelected} />
+            )}
+          </section>
+          {/* RIGHT: summary of the session you're checking. */}
+          {selectedSession && (
+            <aside className="summary-col">
+              <SessionSummary session={selectedSession} />
+            </aside>
+          )}
         </div>
         {/* Selected session detail: full-width, drag-resizable bottom bar. */}
         {selectedSession && (

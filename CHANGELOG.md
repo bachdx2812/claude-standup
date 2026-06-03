@@ -1,0 +1,43 @@
+# Changelog
+
+All notable changes to Claude StandUp are documented here. The format is based on
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project aims to
+follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [0.1.0] - 2026-06-04
+
+Initial release.
+
+### Added
+
+- **Office view** — each active Claude Code session is a pixel employee at a desk
+  with a live status bubble. Responsive grid that fits the window and only scrolls
+  when desks genuinely overflow.
+- **Boss (you)** — sending a prompt to any session beams it to that desk with a
+  comic speech bubble, so you remember what you asked each agent to do.
+- **Session states** — Running / Needs Input / Idle, color-coded; an animated
+  "z Z Z" once a session has been idle for 5+ minutes.
+- **Cost + context** — per-session USD cost (from transcript token usage) and a
+  context-window HP bar that's aware of the 200k vs 1M model windows; an overall
+  usage pill in the header.
+- **Key decisions timeline** — prompts answered, PRs opened, subagents spawned,
+  skills invoked, commits, file writes, plan approvals.
+- **Auto summaries** — short per-session summaries via the local `claude` CLI
+  (running sessions refresh every 30s), rendered as markdown.
+- **Layout** — sessions list (left), office (center), checked-session summary
+  (right), and a drag-resizable detail footer (session info + key decisions).
+- **Live wall clock** showing the machine time.
+- **macOS app** via Tauri v2 (Rust core + React frontend), with local dev/build
+  scripts that pin the rustup stable toolchain.
+
+### Notes
+
+- Sessions are selected by a recency window (1 / 3 / 12 / 24 h) — no hooks or
+  process scanning, so it works with any terminal or IDE.
+- The app reads `~/.claude/projects/**/*.jsonl` read-only and shells out to
+  `claude -p` for summaries. Nothing else leaves your machine.
+
+[Unreleased]: https://github.com/bachdx2812/claude-standup/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/bachdx2812/claude-standup/releases/tag/v0.1.0

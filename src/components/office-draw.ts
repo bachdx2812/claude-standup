@@ -363,76 +363,50 @@ export function drawBeam(
 
 // Static office props for a richer room — door + clock top-right, potted plants
 // in the lower corners, a water cooler on the left. Drawn behind the desks.
-export function drawDecor(ctx: CanvasRenderingContext2D, W: number, H: number) {
-  drawDoor(ctx, W - 40, 18);
-  drawClock(ctx, W - 74, 28);
-  drawPlant(ctx, W - 20, H - 22);
+// A wall clock is the only standing decor for now (bigger, easy to read).
+export function drawDecor(ctx: CanvasRenderingContext2D, W: number) {
+  drawClock(ctx, W - 56, 52, 18);
 }
 
-function decorPx(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  dx: number,
-  dy: number,
-  w: number,
-  h: number,
-  c: string,
-) {
-  ctx.fillStyle = c;
-  ctx.fillRect(Math.round(x + dx), Math.round(y + dy), w, h);
-}
-
-function drawPlant(ctx: CanvasRenderingContext2D, x: number, baseY: number) {
-  const p = (dx: number, dy: number, w: number, h: number, c: string) =>
-    decorPx(ctx, x, baseY, dx, dy, w, h, c);
-  p(-7, -7, 14, 7, "#7c4a32"); // pot
-  p(-8, -9, 16, 3, "#8a5436"); // rim
-  p(-6, -17, 12, 10, "#2f8f5b"); // foliage
-  p(-9, -13, 5, 7, "#37a368");
-  p(4, -13, 5, 7, "#37a368");
-  p(-2, -22, 5, 7, "#3cb371");
-  p(-7, -20, 4, 5, "#3cb371");
-}
-
-function drawDoor(ctx: CanvasRenderingContext2D, x: number, y: number) {
-  const p = (dx: number, dy: number, w: number, h: number, c: string) =>
-    decorPx(ctx, x, y, dx, dy, w, h, c);
-  p(-2, -2, 32, 60, "#222a38"); // frame
-  p(0, 0, 28, 56, "#33405a"); // panel
-  p(2, 2, 11, 24, "#2b364c"); // insets
-  p(15, 2, 11, 24, "#2b364c");
-  p(2, 28, 11, 24, "#2b364c");
-  p(15, 28, 11, 24, "#2b364c");
-  p(22, 27, 3, 5, "#cbd5e1"); // handle
-}
-
-// Wall clock showing the current machine time (hour + minute hands, live).
-function drawClock(ctx: CanvasRenderingContext2D, x: number, y: number) {
+// Wall clock showing the current machine time (hour + minute hands + ticks, live).
+function drawClock(ctx: CanvasRenderingContext2D, x: number, y: number, r: number) {
   const d = new Date();
   const min = d.getMinutes();
   const hr = d.getHours() % 12;
   ctx.save();
   ctx.beginPath();
-  ctx.arc(x, y, 9, 0, Math.PI * 2);
+  ctx.arc(x, y, r, 0, Math.PI * 2);
   ctx.fillStyle = "#1b2433";
   ctx.fill();
   ctx.strokeStyle = "#3a4760";
-  ctx.lineWidth = 1.5;
+  ctx.lineWidth = 2;
   ctx.stroke();
+  // hour ticks
+  ctx.strokeStyle = "#46566e";
+  ctx.lineWidth = 1.5;
+  for (let i = 0; i < 12; i++) {
+    const a = (i / 12) * Math.PI * 2;
+    const r1 = r - 2;
+    const r2 = r - (i % 3 === 0 ? 5 : 3.5);
+    ctx.beginPath();
+    ctx.moveTo(x + r1 * Math.sin(a), y - r1 * Math.cos(a));
+    ctx.lineTo(x + r2 * Math.sin(a), y - r2 * Math.cos(a));
+    ctx.stroke();
+  }
   const hand = (len: number, ang: number, w: number, c: string) => {
     ctx.strokeStyle = c;
     ctx.lineWidth = w;
+    ctx.lineCap = "round";
     ctx.beginPath();
     ctx.moveTo(x, y);
     ctx.lineTo(x + len * Math.sin(ang), y - len * Math.cos(ang));
     ctx.stroke();
   };
-  hand(5, ((hr + min / 60) / 12) * Math.PI * 2, 1.6, "#cbd5e1"); // hour
-  hand(7, (min / 60) * Math.PI * 2, 1, "#94a3b8"); // minute
-  ctx.fillStyle = "#cbd5e1";
+  hand(r * 0.5, ((hr + min / 60) / 12) * Math.PI * 2, 2.6, "#e2e8f0"); // hour
+  hand(r * 0.78, (min / 60) * Math.PI * 2, 1.6, "#94a3b8"); // minute
+  ctx.fillStyle = "#e2e8f0";
   ctx.beginPath();
-  ctx.arc(x, y, 1.3, 0, Math.PI * 2);
+  ctx.arc(x, y, 2, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 }

@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { isRecent, projectFolder } from "../lib/format";
 import { drawBeam, drawBoss, drawDecor, drawWorker, roundRect } from "./office-draw";
-import { createLife, drawOfficeLife } from "./office-life";
 import type { SessionSnapshot } from "../lib/types";
 
 // The office hero: each session is a pixel employee at a desk with a speech
@@ -13,8 +12,8 @@ import type { SessionSnapshot } from "../lib/types";
 
 const COL_W = 220; // target px per column → drives responsive column count
 const MAX_COLS = 5;
-const BOSS_BASE_Y = 54; // boss stands here, centered at the top
-const DESK_TOP = 170; // first desk row baseline (leaves a band for the boss + bubble)
+const BOSS_BASE_Y = 110; // boss stands here, centered near the top
+const DESK_TOP = 208; // first desk row baseline (clears the boss + its comic bubble)
 const BOT_PAD = 46;
 const MIN_GAP = 98; // tightest row spacing before we allow scrolling
 const MAX_GAP = 128;
@@ -57,7 +56,6 @@ export default function IsoOffice({ sessions, selected, onSelect }: Props) {
   const sessionsRef = useRef(sessions);
   const selectedRef = useRef(selected);
   const layoutRef = useRef<Layout>({ cols: 2, gap: MAX_GAP, startY: DESK_TOP });
-  const lifeRef = useRef(createLife());
   sessionsRef.current = sessions;
   selectedRef.current = selected;
 
@@ -124,15 +122,7 @@ export default function IsoOffice({ sessions, selected, onSelect }: Props) {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, W, H);
 
-      drawDecor(ctx, W, H);
-
-      // Lively floor: furniture + fish + wandering pets, below the desks.
-      {
-        const l = layoutRef.current;
-        const rowsNow = Math.max(1, Math.ceil(sessionsRef.current.length / l.cols));
-        const floorTop = l.startY + (rowsNow - 1) * l.gap + 56;
-        drawOfficeLife(ctx, lifeRef.current, W, H, floorTop, dt);
-      }
+      drawDecor(ctx, W);
 
       // Sync workers <-> sessions, keeping desks stable.
       const workers = workersRef.current;
@@ -295,11 +285,13 @@ function drawBossBubble(
   cx: number,
   W: number,
 ) {
-  const top = BOSS_BASE_Y + 18;
   const pad = 10;
   const lineH = 15;
-  const maxW = Math.min(W - 80, 560);
-  const maxLines = Math.max(2, Math.min(5, Math.floor((DESK_TOP - 50 - top) / lineH)));
+  const bottom = BOSS_BASE_Y - 36; // bubble sits ABOVE the boss (comic style)
+  const headY = BOSS_BASE_Y - 26; // tail points down to the boss's head
+  const left = cx + 10; // ...and up to the RIGHT of the speaker
+  const maxW = Math.min(W - left - 16, 520);
+  const maxLines = Math.max(2, Math.min(5, Math.floor((bottom - 26) / lineH)));
 
   ctx.font = "11px ui-monospace, monospace";
   const promptLines = wrapText(ctx, text, maxW - pad * 2, Math.max(1, maxLines - 1));
@@ -310,7 +302,7 @@ function drawBossBubble(
   const w = Math.min(maxW, contentW + pad * 2);
   const rows = 1 + promptLines.length;
   const h = rows * lineH + pad * 2 - 2;
-  const left = cx - w / 2;
+  const top = bottom - h;
 
   ctx.save();
   roundRect(ctx, left, top, w, h, 9);
@@ -323,11 +315,11 @@ function drawBossBubble(
   ctx.stroke();
   ctx.shadowBlur = 0;
 
-  // Tail pointing up to the boss.
+  // Comic tail: from the bubble's lower-left, down-left to the boss's head.
   ctx.beginPath();
-  ctx.moveTo(cx - 6, top);
-  ctx.lineTo(cx + 6, top);
-  ctx.lineTo(cx, BOSS_BASE_Y + 5);
+  ctx.moveTo(left + 10, bottom - 3);
+  ctx.lineTo(left + 24, bottom - 3);
+  ctx.lineTo(cx + 3, headY + 2);
   ctx.closePath();
   ctx.fillStyle = "rgba(13,18,27,0.97)";
   ctx.fill();
