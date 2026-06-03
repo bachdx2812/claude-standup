@@ -6,6 +6,8 @@ single glance tells you who's running, who needs you, and who's idle.
 
 Native macOS app. Local-only. Read-only. No account, no telemetry.
 
+> Inspired by [paulrobello/claude-office](https://github.com/paulrobello/claude-office).
+
 ![Claude StandUp](docs/screenshot.jpg)
 
 ## Why
@@ -128,10 +130,6 @@ Stack: **Tauri v2 · Rust · React 18 · TypeScript · Vite · Zustand · Canvas
 - Reads transcripts **read-only**; never modifies your `~/.claude` data.
 - No network calls beyond the local `claude` CLI you already use.
 - No telemetry.
-
-## Acknowledgements
-
-Inspired by [paulrobello/claude-office](https://github.com/paulrobello/claude-office).
 
 ## License
 
