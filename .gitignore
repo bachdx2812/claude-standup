@@ -1,0 +1,16 @@
+# dependencies
+node_modules/
+# build output
+dist/
+# rust
+src-tauri/target/
+# tauri generated
+src-tauri/gen/schemas/
+# env / secrets
+.env
+.env.local
+*.local
+# os
+.DS_Store
+# CK stack local state
+.claude/

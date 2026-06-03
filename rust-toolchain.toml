@@ -1,0 +1,5 @@
+# Pin to rustup's stable toolchain. Tauri v2 deps require rustc >= 1.88;
+# the Homebrew rustc (1.86) is too old. Build via the rustup cargo shim
+# (~/.cargo/bin/cargo) or `rustup run stable cargo ...` so this is honored.
+[toolchain]
+channel = "stable"
