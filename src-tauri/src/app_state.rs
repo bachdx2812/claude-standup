@@ -243,7 +243,6 @@ impl SessionRuntime {
             model: self.model.clone(),
         };
     }
-
 }
 
 fn empty_snapshot(id: &str, label: String) -> SessionSnapshot {

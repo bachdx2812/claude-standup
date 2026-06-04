@@ -81,7 +81,11 @@ pub fn get_settings(state: State<'_, AppState>) -> SettingsDto {
     SettingsDto {
         auto_popup: state.auto_popup.load(Relaxed),
         snoozed: state.snooze_until.load(Relaxed) > now,
-        summary_model: state.summary_model.lock().unwrap_or_else(|e| e.into_inner()).clone(),
+        summary_model: state
+            .summary_model
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .clone(),
     }
 }
 
@@ -93,7 +97,11 @@ pub async fn summarize_session(
     session_id: String,
     state: State<'_, AppState>,
 ) -> Result<String, String> {
-    let model = state.summary_model.lock().unwrap_or_else(|e| e.into_inner()).clone();
+    let model = state
+        .summary_model
+        .lock()
+        .unwrap_or_else(|e| e.into_inner())
+        .clone();
     let model_opt = if model.trim().is_empty() {
         None
     } else {
@@ -113,7 +121,10 @@ pub async fn summarize_session(
 
 #[tauri::command]
 pub fn set_summary_model(model: String, state: State<'_, AppState>, app: tauri::AppHandle) {
-    *state.summary_model.lock().unwrap_or_else(|e| e.into_inner()) = model;
+    *state
+        .summary_model
+        .lock()
+        .unwrap_or_else(|e| e.into_inner()) = model;
     crate::settings::save(&app, &state);
 }
 

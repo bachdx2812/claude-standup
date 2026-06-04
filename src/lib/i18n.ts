@@ -38,6 +38,7 @@ const en = {
   summaryModel: "Summary model (optional)",
   summaryModelPlaceholder: "blank = Claude default",
   language: "Language",
+  checkUpdates: "Check for updates",
 };
 
 type Dict = typeof en;
@@ -76,6 +77,7 @@ const vi: Dict = {
   summaryModel: "Model tóm tắt (tuỳ chọn)",
   summaryModelPlaceholder: "để trống = mặc định Claude",
   language: "Ngôn ngữ",
+  checkUpdates: "Kiểm tra cập nhật",
 };
 
 const dicts: Record<Lang, Dict> = { en, vi };

@@ -143,8 +143,10 @@ pub fn message_cost_usd(model: &str, usage: &Usage) -> f64 {
     let t = table_for(model);
     const PER_MILLION: f64 = 1_000_000.0;
 
-    let cache_write_tokens_cost = match (usage.ephemeral_1h_input_tokens, usage.ephemeral_5m_input_tokens)
-    {
+    let cache_write_tokens_cost = match (
+        usage.ephemeral_1h_input_tokens,
+        usage.ephemeral_5m_input_tokens,
+    ) {
         (None, None) => {
             // No breakdown: price all cache-creation tokens at the 5m rate.
             usage.cache_creation_input_tokens as f64 * t.cache_write_5m
@@ -235,7 +237,10 @@ mod tests {
 
     #[test]
     fn unknown_model_falls_back_to_opus() {
-        let usage = Usage { input_tokens: 1_000_000, ..Default::default() };
+        let usage = Usage {
+            input_tokens: 1_000_000,
+            ..Default::default()
+        };
         let cost = message_cost_usd("some-future-model", &usage);
         assert!((cost - 15.0).abs() < 1e-6, "got {cost}");
     }

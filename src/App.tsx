@@ -10,6 +10,7 @@ import { useSessions } from "./store/sessions-store";
 import { useLang } from "./store/lang-store";
 import { contextPct, nowSec } from "./lib/format";
 import { t } from "./lib/i18n";
+import { checkForUpdate } from "./lib/updater";
 
 export default function App() {
   const sessions = useSessions((s) => s.sessions);
@@ -61,6 +62,12 @@ export default function App() {
       unlisten.then((f) => f()).catch(() => {});
     };
   }, [setSessions]);
+
+  // Quietly check GitHub Releases for a newer build shortly after launch.
+  useEffect(() => {
+    const id = setTimeout(() => checkForUpdate({ silent: true }), 4000);
+    return () => clearTimeout(id);
+  }, []);
 
   // Show every real session (backend already drops stubs/temp). Sorted by the
   // backend: Running → Needs-Input → Idle, so active ones sit on top and nothing

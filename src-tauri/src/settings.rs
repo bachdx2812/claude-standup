@@ -47,7 +47,10 @@ pub fn load(app: &AppHandle) -> PersistedSettings {
 /// Apply persisted settings to the live state (once, at startup).
 pub fn apply(s: PersistedSettings, state: &AppState) {
     state.auto_popup.store(s.auto_popup, Relaxed);
-    *state.summary_model.lock().unwrap_or_else(|e| e.into_inner()) = s.summary_model;
+    *state
+        .summary_model
+        .lock()
+        .unwrap_or_else(|e| e.into_inner()) = s.summary_model;
 }
 
 /// Snapshot the current live settings to disk (best-effort).

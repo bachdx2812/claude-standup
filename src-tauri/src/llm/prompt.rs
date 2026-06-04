@@ -4,7 +4,8 @@
 use crate::analysis::truncate;
 use crate::model::{DecisionEvent, SessionSnapshot};
 
-const INSTRUCTION: &str = "Summarize this Claude Code session for a developer who runs many sessions \
+const INSTRUCTION: &str =
+    "Summarize this Claude Code session for a developer who runs many sessions \
 in parallel and forgets what each did. In 3-5 sentences: what it set out to do, the key decisions \
 made, and where it currently stands. Be concrete and concise. No preamble.";
 
@@ -15,7 +16,10 @@ pub fn build_prompt(snapshot: &SessionSnapshot, decisions: &[DecisionEvent]) -> 
     ctx.push_str("\n\n");
     ctx.push_str(&format!(
         "Title: {}\nProject: {}\nState: {:?}\nCurrently: {}\n",
-        snapshot.title.clone().unwrap_or_else(|| "(untitled)".into()),
+        snapshot
+            .title
+            .clone()
+            .unwrap_or_else(|| "(untitled)".into()),
         snapshot.project_path,
         snapshot.state,
         snapshot.current_status,

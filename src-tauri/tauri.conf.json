@@ -28,8 +28,17 @@
       "csp": null
     }
   },
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://github.com/bachdx2812/claude-standup/releases/latest/download/latest.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDM4MjY1RjU1NkUxNDdCQTgKUldTb2V4UnVWVjhtT0pNTFlrS21OK21xRytXUUZjeHErVk1aVEgyanJsZ1MzanJkNGVYcy9oV0kK"
+    }
+  },
   "bundle": {
     "active": true,
+    "createUpdaterArtifacts": true,
     "targets": ["app", "dmg"],
     "category": "DeveloperTool",
     "copyright": "© 2026 bachdx2812",

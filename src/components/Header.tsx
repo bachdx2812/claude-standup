@@ -3,6 +3,7 @@ import { fetchSettings, setAutoPopup, setSummaryModel, snoozePopups } from "../l
 import { contextColor, formatCost } from "../lib/format";
 import { t, type Lang } from "../lib/i18n";
 import { useLang } from "../store/lang-store";
+import { checkForUpdate } from "../lib/updater";
 
 interface HeaderProps {
   running: number;
@@ -137,6 +138,17 @@ export default function Header({
           <div className="disclosure">
             Summaries run the local <code>claude -p</code> (your Claude login) — no API key.
           </div>
+
+          <div className="settings-divider" />
+          <button
+            className="snooze"
+            onClick={() => {
+              setOpen(false);
+              checkForUpdate();
+            }}
+          >
+            {t("checkUpdates")}
+          </button>
         </div>
       )}
     </header>

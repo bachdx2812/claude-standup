@@ -18,6 +18,8 @@ use tauri_plugin_autostart::MacosLauncher;
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         // Single-instance MUST be registered first: a second launch focuses the
         // existing window instead of spawning a duplicate menubar agent.
         .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {

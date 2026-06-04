@@ -114,7 +114,10 @@ mod tests {
         assert_eq!(t.read_new_lines(&p).unwrap(), vec!["{\"c\":3}".to_string()]);
 
         append(&p, b"4}\n");
-        assert_eq!(t.read_new_lines(&p).unwrap(), vec!["{\"partial\":4}".to_string()]);
+        assert_eq!(
+            t.read_new_lines(&p).unwrap(),
+            vec!["{\"partial\":4}".to_string()]
+        );
     }
 
     #[test]
@@ -138,7 +141,11 @@ mod tests {
         let mut t = Tailer::new();
 
         append(&p, b"{\"e\":\"\xE2\x9C"); // up to 2 of the 3 emoji bytes, no newline
-        assert_eq!(t.read_new_lines(&p).unwrap().len(), 0, "no complete line yet");
+        assert_eq!(
+            t.read_new_lines(&p).unwrap().len(),
+            0,
+            "no complete line yet"
+        );
 
         append(&p, b"\xA8\"}\n"); // final emoji byte + close + newline
         let lines = t.read_new_lines(&p).unwrap();

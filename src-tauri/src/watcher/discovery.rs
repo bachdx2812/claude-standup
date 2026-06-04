@@ -56,7 +56,9 @@ pub fn discover() -> Vec<SessionFile> {
 pub fn mtime_millis(path: &Path) -> Option<i64> {
     let meta = std::fs::metadata(path).ok()?;
     let mt = meta.modified().ok()?;
-    mt.duration_since(UNIX_EPOCH).ok().map(|d| d.as_millis() as i64)
+    mt.duration_since(UNIX_EPOCH)
+        .ok()
+        .map(|d| d.as_millis() as i64)
 }
 
 /// Fallback display label from the directory slug. The real path comes from the

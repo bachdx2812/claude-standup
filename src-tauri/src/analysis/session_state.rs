@@ -79,7 +79,9 @@ mod tests {
     const NOW: i64 = 1_900_000_000;
 
     fn ts(unix: i64) -> String {
-        chrono::DateTime::from_timestamp(unix, 0).unwrap().to_rfc3339()
+        chrono::DateTime::from_timestamp(unix, 0)
+            .unwrap()
+            .to_rfc3339()
     }
 
     fn dq(lines: &[String]) -> VecDeque<RawLine> {
@@ -89,7 +91,8 @@ mod tests {
     fn assistant(at: i64, stop: &str) -> String {
         format!(
             r#"{{"type":"assistant","timestamp":"{}","message":{{"role":"assistant","stop_reason":"{}","content":[]}}}}"#,
-            ts(at), stop
+            ts(at),
+            stop
         )
     }
 
@@ -123,6 +126,9 @@ mod tests {
     #[test]
     fn no_parseable_timestamp_is_idle() {
         let bad = r#"{"type":"assistant","timestamp":"nope","message":{"role":"assistant"}}"#;
-        assert_eq!(derive(&dq(&[bad.to_string()]), 0, false, false, NOW), SessionState::Idle);
+        assert_eq!(
+            derive(&dq(&[bad.to_string()]), 0, false, false, NOW),
+            SessionState::Idle
+        );
     }
 }

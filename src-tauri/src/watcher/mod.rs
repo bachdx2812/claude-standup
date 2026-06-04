@@ -135,7 +135,11 @@ async fn scan_once(
         let raw = tailer.read_new_lines(&sf.path).unwrap_or_default();
         let lines: Vec<RawLine> = raw.iter().filter_map(|l| parse_line(l)).collect();
         let subagent_count = discovery::subagent_count(&sf.path, &sf.session_id);
-        ingests.push(Ingest { sf: sf.clone(), lines, subagent_count });
+        ingests.push(Ingest {
+            sf: sf.clone(),
+            lines,
+            subagent_count,
+        });
     }
 
     // --- Phase 2: short write lock — mutate registry, recompute (no IO). ---
@@ -189,7 +193,10 @@ async fn scan_once(
             // (a momentary process-scan miss must not wipe the registry).
             !rt.snapshot.is_real()
                 || (rt.snapshot.state == SessionState::Idle
-                    && rt.snapshot.last_activity_unix.is_some_and(|t| now - t > EVICT_SECS))
+                    && rt
+                        .snapshot
+                        .last_activity_unix
+                        .is_some_and(|t| now - t > EVICT_SECS))
         })
         .map(|(id, _)| id.clone())
         .collect();
@@ -240,6 +247,9 @@ mod tests {
         }
         eprintln!("built {built} snapshots, {with_meta} carried title/real-path");
         assert!(built > 0);
-        assert!(with_meta > 0, "expected at least one snapshot with metadata");
+        assert!(
+            with_meta > 0,
+            "expected at least one snapshot with metadata"
+        );
     }
 }

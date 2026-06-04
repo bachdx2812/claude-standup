@@ -133,5 +133,12 @@ async fn resolve_bin() -> Option<String> {
 /// any surrounding shell-init noise.
 fn extract_marked(stdout: &[u8]) -> Option<String> {
     let s = String::from_utf8_lossy(stdout);
-    Some(s.split("CMPSTART").nth(1)?.split("CMPEND").next()?.trim().to_string())
+    Some(
+        s.split("CMPSTART")
+            .nth(1)?
+            .split("CMPEND")
+            .next()?
+            .trim()
+            .to_string(),
+    )
 }

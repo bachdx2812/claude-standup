@@ -50,17 +50,33 @@ impl DecisionExtractor {
         } else {
             format!("opened PR #{n} ({repo})")
         };
-        self.push(DecisionKind::PrOpened, rl.timestamp.clone(), summary, rl.pr_url.clone(), format!("pr:{n}"));
+        self.push(
+            DecisionKind::PrOpened,
+            rl.timestamp.clone(),
+            summary,
+            rl.pr_url.clone(),
+            format!("pr:{n}"),
+        );
     }
 
     fn feed_away(&mut self, rl: &RawLine) {
-        let content = rl.extra.get("content").and_then(Value::as_str).unwrap_or("");
+        let content = rl
+            .extra
+            .get("content")
+            .and_then(Value::as_str)
+            .unwrap_or("");
         if content.is_empty() {
             return;
         }
         let summary = truncate(content.lines().next().unwrap_or(content), 80);
         let ref_id = format!("away:{}", rl.uuid.clone().unwrap_or_default());
-        self.push(DecisionKind::AwaySummary, rl.timestamp.clone(), summary, Some(content.to_string()), ref_id);
+        self.push(
+            DecisionKind::AwaySummary,
+            rl.timestamp.clone(),
+            summary,
+            Some(content.to_string()),
+            ref_id,
+        );
     }
 
     fn feed_user(&mut self, rl: &RawLine) {
@@ -104,12 +120,23 @@ impl DecisionExtractor {
 
         // 2) Genuine user prompt: bare string content, not an injected meta line.
         if rl.is_meta != Some(true) {
-            if let Some(text) = rl.message.as_ref().and_then(|m| m.get("content")).and_then(Value::as_str) {
+            if let Some(text) = rl
+                .message
+                .as_ref()
+                .and_then(|m| m.get("content"))
+                .and_then(Value::as_str)
+            {
                 let t = text.trim();
                 if !t.is_empty() {
                     let ref_id = format!("prompt:{}", rl.uuid.clone().unwrap_or_default());
                     let summary = format!("you asked: \"{}\"", truncate(t, 80));
-                    self.push(DecisionKind::UserPrompt, rl.timestamp.clone(), summary, Some(t.to_string()), ref_id);
+                    self.push(
+                        DecisionKind::UserPrompt,
+                        rl.timestamp.clone(),
+                        summary,
+                        Some(t.to_string()),
+                        ref_id,
+                    );
                 }
             }
         }
@@ -141,21 +168,51 @@ impl DecisionExtractor {
                     } else {
                         format!("spawned {st}: {desc}")
                     };
-                    self.push(DecisionKind::SubagentSpawned, ts, summary, None, format!("agent:{id}"));
+                    self.push(
+                        DecisionKind::SubagentSpawned,
+                        ts,
+                        summary,
+                        None,
+                        format!("agent:{id}"),
+                    );
                 }
                 "Skill" => {
-                    self.push(DecisionKind::SkillInvoked, ts, format!("ran skill {}", field("skill")), None, format!("skill:{id}"));
+                    self.push(
+                        DecisionKind::SkillInvoked,
+                        ts,
+                        format!("ran skill {}", field("skill")),
+                        None,
+                        format!("skill:{id}"),
+                    );
                 }
                 "Write" => {
-                    self.push(DecisionKind::FileWrite, ts, format!("wrote {}", basename(field("file_path"))), None, format!("write:{id}"));
+                    self.push(
+                        DecisionKind::FileWrite,
+                        ts,
+                        format!("wrote {}", basename(field("file_path"))),
+                        None,
+                        format!("write:{id}"),
+                    );
                 }
                 "ExitPlanMode" => {
-                    self.push(DecisionKind::PlanApproved, ts, "approved a plan".to_string(), None, format!("plan:{id}"));
+                    self.push(
+                        DecisionKind::PlanApproved,
+                        ts,
+                        "approved a plan".to_string(),
+                        None,
+                        format!("plan:{id}"),
+                    );
                 }
                 "Bash" => {
                     let cmd = field("command");
                     if cmd.contains("git commit") {
-                        self.push(DecisionKind::Commit, ts, "committed changes".to_string(), Some(truncate(cmd, 100)), format!("commit:{id}"));
+                        self.push(
+                            DecisionKind::Commit,
+                            ts,
+                            "committed changes".to_string(),
+                            Some(truncate(cmd, 100)),
+                            format!("commit:{id}"),
+                        );
                     }
                 }
                 _ => {}
@@ -209,7 +266,10 @@ mod tests {
         ex.feed(&parse_line(answer).unwrap());
         assert_eq!(ex.events.len(), 1);
         assert_eq!(ex.events[0].kind, DecisionKind::QuestionAnswered);
-        assert_eq!(ex.events[0].summary, "chose \"Tauri (Rust core)\" for \"Stack\"");
+        assert_eq!(
+            ex.events[0].summary,
+            "chose \"Tauri (Rust core)\" for \"Stack\""
+        );
 
         // Re-feeding the same answer must not duplicate.
         ex.feed(&parse_line(answer).unwrap());

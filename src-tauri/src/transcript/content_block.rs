@@ -53,5 +53,8 @@ pub fn has_block(message: &Value, kind: &str) -> bool {
     message
         .get("content")
         .and_then(Value::as_array)
-        .is_some_and(|arr| arr.iter().any(|b| b.get("type").and_then(Value::as_str) == Some(kind)))
+        .is_some_and(|arr| {
+            arr.iter()
+                .any(|b| b.get("type").and_then(Value::as_str) == Some(kind))
+        })
 }
