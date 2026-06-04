@@ -1,7 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import { isRecent, projectFolder } from "../lib/format";
-import { t } from "../lib/i18n";
-import { drawBeam, drawBoss, drawDecor, drawWorker, roundRect } from "./office-draw";
+import { isRecent, projectFolder, stateColor } from "../lib/format";
+import {
+  drawAmbientLight,
+  drawBeam,
+  drawBoss,
+  drawDecor,
+  drawDisco,
+  drawLampGlow,
+  drawWorker,
+  roundRect,
+} from "./office-draw";
 import type { SessionSnapshot } from "../lib/types";
 
 // The office hero: each session is a pixel employee at a desk with a speech
@@ -19,6 +27,23 @@ const BOT_PAD = 46;
 const MIN_GAP = 98; // tightest row spacing before we allow scrolling
 const MAX_GAP = 128;
 const BOSS_MSG_MS = 7000;
+const QUIP_MS = 3500;
+
+// Witty one-liners an agent pops when you click (poke) them. Pure flavor.
+const QUIPS = [
+  "ship it! 🚀",
+  "merge conflict again 😩",
+  "ctx's getting tight, boss",
+  "almost there…",
+  "needs more coffee ☕",
+  "this'll compile. probably.",
+  "ooh, a new prompt!",
+  "refactoring… again",
+  "tests are green 🎉",
+  "who wrote this code??",
+  "5 more minutes",
+  "let him cook 🔥",
+];
 
 interface Props {
   sessions: SessionSnapshot[];
@@ -63,6 +88,10 @@ export default function IsoOffice({ sessions, selected, onSelect }: Props) {
   const bossRef = useRef<{ targetId: string; text: string; shownAt: number } | null>(null);
   const prevPromptsRef = useRef<Map<string, string>>(new Map());
   const seededRef = useRef(false);
+  // Disco party end-time (performance.now ms); 0 = no party. Set by Konami code.
+  const partyRef = useRef(0);
+  // Transient quip bubbles per session id (poke an agent → it talks).
+  const quipsRef = useRef<Map<string, { text: string; until: number }>>(new Map());
 
   const [wrapW, setWrapW] = useState(0);
   const [wrapH, setWrapH] = useState(0);
@@ -113,6 +142,25 @@ export default function IsoOffice({ sessions, selected, onSelect }: Props) {
     }
   }, [sessions]);
 
+  // Konami code (↑↑↓↓←→←→ b a) → an 8-second disco party. Pure easter egg.
+  useEffect(() => {
+    const seq = [
+      "ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown",
+      "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight", "b", "a",
+    ];
+    let i = 0;
+    const onKey = (e: KeyboardEvent) => {
+      const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+      i = k === seq[i] ? i + 1 : k === seq[0] ? 1 : 0;
+      if (i === seq.length) {
+        partyRef.current = performance.now() + 8000;
+        i = 0;
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   // Track the wrapper size so the canvas can be sized to fit it exactly.
   useEffect(() => {
     const el = wrapRef.current;
@@ -151,13 +199,14 @@ export default function IsoOffice({ sessions, selected, onSelect }: Props) {
       // Full frame rate only while something actually moves (running typing/glow,
       // a desk popping in, the boss beam, or a sleeping "zzz"); otherwise idle at a
       // few fps — enough for the clock — to spare CPU + battery.
-      let animating = boss !== null;
+      let animating = boss !== null || partyRef.current > now || quipsRef.current.size > 0;
       const nowSecs = Date.now() / 1000;
       for (const [id, w] of workers) {
         const s = byId.get(id);
         if (!s) continue;
         if (
           s.state === "running" ||
+          s.state === "needsInput" ||
           now - w.appearAt < 470 ||
           (s.state === "idle" && nowSecs - (s.lastActivityUnix ?? 0) > 300)
         ) {
@@ -191,7 +240,21 @@ export default function IsoOffice({ sessions, selected, onSelect }: Props) {
         w.phase += dt * (s.state === "running" ? 7 : 3);
         const { x, y } = deskPos(w.slot, W, lay);
         const appear = Math.min(1, (now - w.appearAt) / 450);
-        drawWorker(ctx, x, y, s, w.phase, appear, id === selectedRef.current, id === summonId);
+        // A fresh quip (from poking the agent) takes over its bubble for a few secs.
+        const q = quipsRef.current.get(id);
+        const quip = q && q.until > now ? q.text : undefined;
+        if (q && q.until <= now) quipsRef.current.delete(id);
+        drawWorker(
+          ctx,
+          x,
+          y,
+          s,
+          w.phase,
+          appear,
+          id === selectedRef.current,
+          id === summonId,
+          quip,
+        );
       }
 
       // Boss: beam (under), then figure, then the big speech bubble (on top).
@@ -208,6 +271,17 @@ export default function IsoOffice({ sessions, selected, onSelect }: Props) {
         const ts = byId.get(boss.targetId);
         if (ts) drawBossBubble(ctx, ts, boss.text, bossX, W);
       }
+
+      // Night dim, then the desk-lamp glows — each tinted by the session's state
+      // (green = running, amber = waiting, grey = idle) — punch through.
+      drawAmbientLight(ctx, W, H);
+      for (const [gid, gw] of workers) {
+        const gs = byId.get(gid);
+        if (!gs) continue;
+        const gp = deskPos(gw.slot, W, lay);
+        drawLampGlow(ctx, gp.x, gp.y, stateColor(gs.state));
+      }
+      if (partyRef.current > now) drawDisco(ctx, W, H, now);
     };
 
     raf = requestAnimationFrame(draw);
@@ -232,7 +306,13 @@ export default function IsoOffice({ sessions, selected, onSelect }: Props) {
         best = id;
       }
     }
-    if (best) onSelect(best);
+    if (best) {
+      onSelect(best);
+      quipsRef.current.set(best, {
+        text: QUIPS[Math.floor(Math.random() * QUIPS.length)],
+        until: performance.now() + QUIP_MS,
+      });
+    }
   };
 
   // Layout: desks top-aligned under the boss. Pick a row spacing that fits every
@@ -250,9 +330,6 @@ export default function IsoOffice({ sessions, selected, onSelect }: Props) {
 
   return (
     <div className="office">
-      <div className="office-head">
-        {t("office")} · {sessions.length} {sessions.length === 1 ? t("desk") : t("desks")}
-      </div>
       <div className="office-canvas-wrap" ref={wrapRef}>
         <canvas
           ref={canvasRef}

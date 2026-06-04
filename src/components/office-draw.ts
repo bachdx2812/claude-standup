@@ -7,7 +7,6 @@ import {
   formatCost,
   projectFolder,
   stateColor,
-  stateLabel,
 } from "../lib/format";
 import { t } from "../lib/i18n";
 import type { SessionSnapshot } from "../lib/types";
@@ -94,6 +93,7 @@ export function drawWorker(
   appear: number,
   selected: boolean,
   summoned: boolean,
+  quip?: string,
 ) {
   const col = stateColor(s.state);
   const y = baseY - (1 - appear) * 14;
@@ -107,63 +107,84 @@ export function drawWorker(
   ctx.save();
   ctx.globalAlpha = appear;
 
-  // Floor ring when the boss is pointing at this desk.
-  if (summoned) {
+  // --- Speech bubble: a fresh quip (from poking) takes over, else the status. ---
+  const status = s.currentStatus?.trim();
+  const bubbleText = quip ?? (status && status !== "—" ? status : "Processing");
+  drawBubble(ctx, x, y - 64, bubbleText, quip ? "#fbbf24" : col);
+
+  // --- Workstation over the employee's shoulder. Everything sits ON the desk:
+  //     monitor + lamp stand on it, keyboard lies on it; employee in front. ---
+
+  // Dual monitors with LIT screens (bright = clearly monitors), over the
+  // shoulder. Running adds a coloured glow around the bezels.
+  if (s.state === "running") {
+    ctx.shadowColor = col;
+    ctx.shadowBlur = 12;
+  }
+  px(-25, -38, 19, 15, "#0a0d12"); // left bezel
+  px(1, -38, 19, 15, "#0a0d12"); // right bezel
+  ctx.shadowBlur = 0;
+  px(-23, -36, 15, 11, "#26406a"); // left lit screen
+  px(3, -36, 15, 11, "#26406a"); // right lit screen
+  px(-22, -33, 12, 1, col); // screen content lines
+  px(-22, -30, 8, 1, "#6c91c4");
+  px(4, -33, 12, 1, col);
+  px(4, -30, 8, 1, "#6c91c4");
+  px(-16, -23, 2, 2, "#2a313c"); // left stand
+  px(10, -23, 2, 2, "#2a313c"); // right stand
+
+  // Lamp at the desk's right edge = STATUS LIGHT: green = running, amber =
+  // waiting, grey = idle (glow pool added later in drawLampGlow).
+  px(23, -24, 4, 2, "#39414f"); // base
+  px(24, -31, 1, 7, "#566073"); // pole
+  px(22, -34, 6, 3, col); // shade in the state colour
+  ctx.save();
+  ctx.shadowColor = col;
+  ctx.shadowBlur = 8;
+  px(23, -31, 4, 1, col); // bulb
+  ctx.restore();
+
+  // Big desk, high contrast: light top + dark front face.
+  ctx.fillStyle = "#525c6e";
+  roundRect(ctx, x - 29, y - 23, 58, 6, 2); // top surface
+  ctx.fill();
+  ctx.fillStyle = "#2a313c";
+  ctx.fillRect(Math.round(x - 29), Math.round(y - 17), 58, 6); // front face
+
+  // Keyboard on the desk.
+  px(-11, -21, 22, 3, "#1a1f28");
+  for (let kx = -10; kx < 11; kx += 3) px(kx, -20, 2, 1, "#4a5468"); // keys
+
+  // Employee NEAREST us: clear back of head + shoulders (coloured shirt pops).
+  px(-13, 1, 26, 7, col); // shoulders / upper back
+  px(-7, -11, 14, 13, hair); // back of head (big)
+  px(-6, -12, 12, 1, hair); // rounded crown
+  px(-8, -6, 1, 3, skin); // left ear
+  px(7, -6, 1, 3, skin); // right ear
+  px(-4, 1, 8, 2, skin); // nape of the neck
+
+  // "Waiting for you" cue: a bobbing, pulsing amber "!" badge floating up to the
+  // right, well clear of the person + the workstation, only while waiting on you.
+  if (s.state === "needsInput") {
+    const bx = x;
+    const by = y - 73 + Math.sin(phase * 0.8) * 2;
     ctx.save();
-    ctx.globalAlpha = appear * (0.3 + 0.35 * Math.abs(Math.sin(phase * 0.5)));
-    ctx.strokeStyle = ACCENT;
-    ctx.lineWidth = 2;
+    ctx.globalAlpha = appear * (0.6 + 0.4 * Math.abs(Math.sin(phase * 0.6)));
     ctx.beginPath();
-    ctx.ellipse(x, y + 2, 30, 14, 0, 0, Math.PI * 2);
+    ctx.arc(bx, by, 6, 0, Math.PI * 2);
+    ctx.fillStyle = "#211808";
+    ctx.fill();
+    ctx.strokeStyle = "#fbbf24";
+    ctx.lineWidth = 1.5;
     ctx.stroke();
+    ctx.fillStyle = "#fbbf24";
+    ctx.font = "bold 10px ui-monospace, monospace";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("!", bx, by + 0.5);
     ctx.restore();
   }
 
-  // --- Speech bubble (what they're doing) ---
-  drawBubble(ctx, x, y - 52, s.currentStatus?.trim() || stateLabel(s.state), col);
-
-  // --- Employee (behind desk) ---
-  if (s.state === "needsInput" || summoned) {
-    px(5, -34, 2, 9, summoned ? ACCENT : col); // raised arm (also when summoned)
-    px(5, -35, 3, 2, skin);
-  }
-  px(-5, -31, 10, 3, hair);
-  px(-4, -29, 8, 8, skin); // head
-  px(-5, -29, 1, 4, hair);
-  px(4, -29, 1, 4, hair);
-  if (s.state === "idle") {
-    px(-2, -25, 2, 1, "#111");
-    px(1, -25, 2, 1, "#111");
-  } else {
-    px(-2, -25, 1, 1, "#111");
-    px(2, -25, 1, 1, "#111");
-  }
-  px(-6, -21, 12, 11, col); // shirt
-  px(-8, -20, 2, 8, col);
-  px(6, -20, 2, 8, col);
-
-  // --- Desk + monitor ---
-  ctx.fillStyle = "#39414f";
-  roundRect(ctx, x - 22, y - 6, 44, 9, 2);
-  ctx.fill();
-  ctx.fillStyle = "#2a313c";
-  ctx.fillRect(Math.round(x - 22), Math.round(y + 1), 44, 2); // front edge
-
-  if (s.state === "running") {
-    ctx.shadowColor = col;
-    ctx.shadowBlur = 8;
-  }
-  px(-7, -9, 14, 8, "#10151d"); // monitor
-  ctx.shadowBlur = 0;
-  ctx.strokeStyle = col;
-  ctx.lineWidth = 1;
-  ctx.strokeRect(Math.round(x - 7), Math.round(y - 9), 14, 8);
-
-  if (s.state === "running") {
-    const ty = Math.sin(phase) * 1.5;
-    px(-10, -3 + ty, 2, 2, skin);
-    px(8, -3 - ty, 2, 2, skin);
-  }
   if (s.state === "idle") {
     const afk = Date.now() / 1000 - (s.lastActivityUnix ?? 0);
     ctx.textAlign = "center";
@@ -175,13 +196,13 @@ export function drawWorker(
         ctx.globalAlpha = appear * 0.8 * (1 - t);
         ctx.fillStyle = "#cbd5e1";
         ctx.font = `${8 + i * 2}px ui-monospace, monospace`;
-        ctx.fillText("z", x + 8 + t * 5, y - 28 - t * 16);
+        ctx.fillText("z", x + 8 + t * 5, y - 13 - t * 16);
       }
       ctx.globalAlpha = appear;
     } else {
       ctx.fillStyle = "rgba(203,213,225,0.5)";
       ctx.font = "9px ui-monospace, monospace";
-      ctx.fillText("z", x + 9, y - 30);
+      ctx.fillText("z", x + 9, y - 15);
     }
   }
 
@@ -199,7 +220,7 @@ export function drawWorker(
     ctx.lineWidth = 2;
     ctx.shadowColor = "#60a5fa";
     ctx.shadowBlur = 12;
-    roundRect(ctx, x - 27, y - 33, 54, 39, 9);
+    roundRect(ctx, x - 29, y - 39, 58, 47, 9);
     ctx.stroke();
     ctx.shadowBlur = 0;
     // "CHECKING" pill above the status bubble (this is the session you're inspecting)
@@ -226,8 +247,7 @@ export function drawWorker(
   ctx.font = "9px ui-monospace, monospace";
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
-  const name =
-    ellipsize(projectFolder(s), 18) + (s.subagentCount > 0 ? ` +${s.subagentCount}` : "");
+  const name = ellipsize(projectFolder(s), 18);
   ctx.fillText(name, x, y + 13);
 
   // Cost on a tiny muted line, then a game-style "HP bar" for the context window.
@@ -367,6 +387,67 @@ export function drawBeam(
 // A wall clock is the only standing decor for now (bigger, easy to read).
 export function drawDecor(ctx: CanvasRenderingContext2D, W: number) {
   drawClock(ctx, W - 56, 52, 18);
+}
+
+// --- Fun: day-night ambient light + disco easter egg ------------------------
+
+// Time-of-day wash over the whole office, driven by the local machine clock:
+// clear in daytime, warm at dawn/dusk, cool blue at night. Drawn last, over the
+// scene, so the room visibly shifts as the hours pass while you work.
+// True from 7pm to 6am (local machine clock) — drives the desk lamps + the night
+// dim, so the office visibly settles into evening while you work.
+export function isNightHour(hour = new Date().getHours()): boolean {
+  return hour >= 19 || hour < 6; // 7pm to 6am
+}
+
+// A gentle night dim over the room, drawn UNDER the desks so the warm desk-lamp
+// pools glow on top. Clear during the day.
+export function drawAmbientLight(ctx: CanvasRenderingContext2D, w: number, h: number) {
+  if (!isNightHour()) return;
+  ctx.fillStyle = "rgba(16,24,52,0.22)";
+  ctx.fillRect(0, 0, w, h);
+}
+
+// Warm glow pool from a lit desk lamp, drawn additively AFTER the night dim so
+// the lamp light punches through the darkened room. Coords match the fixture.
+export function drawLampGlow(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  color: string,
+) {
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  const glow = ctx.createRadialGradient(x + 24, y - 22, 1, x + 24, y - 22, 17);
+  glow.addColorStop(0, color + "99"); // state colour (≈60% alpha) at the bulb
+  glow.addColorStop(1, color + "00"); // fading to transparent
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.ellipse(x + 24, y - 21, 17, 6, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+// Konami-code disco: a hue-cycling wash + drifting music notes. Pure fun.
+export function drawDisco(ctx: CanvasRenderingContext2D, w: number, h: number, now: number) {
+  const hue = (now / 12) % 360;
+  ctx.save();
+  ctx.globalCompositeOperation = "overlay";
+  ctx.fillStyle = `hsla(${hue}, 90%, 55%, 0.22)`;
+  ctx.fillRect(0, 0, w, h);
+  ctx.globalCompositeOperation = "source-over";
+  ctx.font = "16px ui-monospace, monospace";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  for (let i = 0; i < 6; i++) {
+    const rise = ((now / 1000) * 0.4 + i / 6) % 1;
+    const x = (w * (i + 0.5)) / 6 + Math.sin(now / 300 + i) * 20;
+    const y = h - rise * (h - 20) - 10;
+    ctx.globalAlpha = 0.85 * (1 - rise);
+    ctx.fillStyle = `hsl(${(hue + i * 60) % 360}, 90%, 65%)`;
+    ctx.fillText(i % 2 ? "♪" : "♫", x, y);
+  }
+  ctx.restore();
 }
 
 // Wall clock showing the current machine time (hour + minute hands + ticks, live).
