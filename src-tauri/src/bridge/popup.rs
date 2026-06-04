@@ -41,6 +41,35 @@ pub fn on_activations(app: &AppHandle, state: &AppState, activations: &[SessionS
         .show();
 }
 
+/// A session just started needing you. Notify only — no window focus-steal —
+/// with the agent's pending question. Edge-triggered by the watcher (fires once
+/// per entry into NeedsInput, batching all that flipped in the same scan), so it
+/// needs no debounce. Gated only by snooze — NOT the auto-popup toggle, which
+/// governs window focus-steal; a notify-only "your move" still fires.
+pub fn on_needs_attention(app: &AppHandle, state: &AppState, needs: &[SessionSnapshot]) {
+    if needs.is_empty() {
+        return;
+    }
+    let now = chrono::Utc::now().timestamp();
+    if state.snooze_until.load(Relaxed) > now {
+        return;
+    }
+
+    let body = match needs {
+        [one] => match &one.pending_question {
+            Some(q) => format!("{}: {q}", label(one)),
+            None => format!("{} is waiting for you", label(one)),
+        },
+        many => format!("{} sessions need your input", many.len()),
+    };
+    let _ = app
+        .notification()
+        .builder()
+        .title("🔔 Needs you")
+        .body(body)
+        .show();
+}
+
 fn label(s: &SessionSnapshot) -> String {
     s.title.clone().unwrap_or_else(|| {
         s.project_path

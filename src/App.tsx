@@ -78,7 +78,9 @@ export default function App() {
     .filter((s) => (s.lastActivityUnix ?? 0) >= cutoff)
     .sort((a, b) => (b.lastActivityUnix ?? 0) - (a.lastActivityUnix ?? 0));
   const running = visible.filter((s) => s.state === "running").length;
-  const needs = visible.filter((s) => s.state === "needsInput").length;
+  const needsSessions = visible.filter((s) => s.state === "needsInput");
+  const restSessions = visible.filter((s) => s.state !== "needsInput");
+  const needs = needsSessions.length;
   // Overall Claude usage = Σ cost across visible sessions, + the busiest window.
   const totalCost = visible.reduce((a, s) => a + (s.costUsd || 0), 0);
   const maxContextPct = visible.reduce<number | null>((acc, s) => {
@@ -104,14 +106,32 @@ export default function App() {
           {/* Top row: sessions list + office. */}
           <div className="app-main">
             <aside className="left-rail">
+              {needsSessions.length > 0 && (
+                <>
+                  <div className="rail-head needs">
+                    🔔 {t("needsYou")} · {needsSessions.length}
+                  </div>
+                  <div className="rail-cards needs-cards">
+                    {needsSessions.map((s) => (
+                      <SessionCard
+                        key={s.id}
+                        s={s}
+                        compact
+                        selected={s.id === selected}
+                        onSelect={() => setSelected(s.id)}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
               <div className="rail-head">
-                {t("sessions")} · {visible.length}
+                {t("sessions")} · {restSessions.length}
               </div>
-              {visible.length === 0 ? (
+              {restSessions.length === 0 ? (
                 <div className="rail-empty muted">{t("noneActive")}</div>
               ) : (
                 <div className="rail-cards">
-                  {visible.map((s) => (
+                  {restSessions.map((s) => (
                     <SessionCard
                       key={s.id}
                       s={s}

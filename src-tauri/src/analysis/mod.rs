@@ -3,6 +3,7 @@
 // timeline. See reports/analysis-260603-2142-jsonl-detection-extraction.md.
 
 pub mod decisions;
+pub mod pending_question;
 pub mod session_state;
 pub mod status_map;
 

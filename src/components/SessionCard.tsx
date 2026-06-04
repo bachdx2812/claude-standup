@@ -40,6 +40,11 @@ export default function SessionCard({ s, selected, onSelect, compact = false }: 
         </span>
       </div>
       <div className="card-status">{s.currentStatus}</div>
+      {s.state === "needsInput" && s.pendingQuestion && (
+        <div className="card-question" title={s.pendingQuestion}>
+          {s.pendingQuestion}
+        </div>
+      )}
       {s.state === "running" && <div className="activity-bar" />}
       {/* Compact rail keeps it to title + status; the desk already carries the
           rich identity. Full card keeps the meta + path footer. */}

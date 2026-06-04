@@ -229,6 +229,23 @@ body {
 .rail-empty {
   padding: 12px;
 }
+/* Pinned "Needs you" group: amber header, content-height (not flex-grow) so it
+   sits at the top and the regular list below keeps the scroll. */
+.rail-head.needs {
+  color: #fbbf24;
+}
+.rail-cards.needs-cards {
+  flex: 0 0 auto;
+  max-height: 38%;
+}
+.card-question {
+  font-size: 11px;
+  color: #fbbf24;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
 /* The checked session's summary — fills the right column. */
 .rail-summary {
   flex: 1;

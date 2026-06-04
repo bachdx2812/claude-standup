@@ -43,6 +43,9 @@ pub struct SessionSnapshot {
     pub context_limit: u64,
     /// Last real (non-synthetic) model id observed (e.g. `claude-opus-4-8`).
     pub model: Option<String>,
+    /// While `NeedsInput`: the agent's pending question / last message, for the
+    /// attention notification + rail subtitle. `None` otherwise.
+    pub pending_question: Option<String>,
 }
 
 /// Kinds of "key decisions" extracted from a transcript (ranked by value).

@@ -48,6 +48,19 @@ pub fn tool_result_ids(message: &Value) -> Vec<&str> {
     out
 }
 
+/// First `text` block's string in a message (the assistant's prose).
+pub fn first_text(message: &Value) -> Option<&str> {
+    message
+        .get("content")
+        .and_then(Value::as_array)?
+        .iter()
+        .find_map(|b| {
+            (b.get("type").and_then(Value::as_str) == Some("text"))
+                .then(|| b.get("text").and_then(Value::as_str))
+                .flatten()
+        })
+}
+
 /// True if the message contains at least one block of `kind`.
 pub fn has_block(message: &Value, kind: &str) -> bool {
     message

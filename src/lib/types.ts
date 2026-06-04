@@ -23,6 +23,8 @@ export interface SessionSnapshot {
   contextUsedTokens: number;
   contextLimit: number;
   model?: string | null;
+  /** While needsInput: the agent's pending question / last message. */
+  pendingQuestion?: string | null;
 }
 
 export type DecisionKind =

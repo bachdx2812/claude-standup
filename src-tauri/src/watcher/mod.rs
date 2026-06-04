@@ -66,7 +66,7 @@ async fn run(app: tauri::AppHandle, state: AppState) {
         }
         let result = scan_once(&state, &mut tailer, &mut mtimes, &mut disco).await;
 
-        crate::bridge::tray::update_count(&app, result.active_count);
+        crate::bridge::tray::update_count(&app, result.active_count, result.needs_count);
 
         if result.changed && last_emit.elapsed() >= Duration::from_millis(250) {
             crate::bridge::events::emit_sessions(&app, &state).await;
@@ -74,6 +74,9 @@ async fn run(app: tauri::AppHandle, state: AppState) {
         }
         if !result.activations.is_empty() {
             crate::bridge::popup::on_activations(&app, &state, &result.activations);
+        }
+        if !result.needs_attention.is_empty() {
+            crate::bridge::popup::on_needs_attention(&app, &state, &result.needs_attention);
         }
     }
 }
@@ -83,6 +86,8 @@ struct ScanResult {
     changed: bool,
     activations: Vec<crate::model::SessionSnapshot>,
     active_count: usize,
+    needs_count: usize,
+    needs_attention: Vec<crate::model::SessionSnapshot>,
 }
 
 /// FSEvents watcher that pokes the loop on any change under projects/.
@@ -158,7 +163,9 @@ async fn scan_once(
 
     // Recompute everything (Active→Idle→Ended turns on the clock) + detect edges.
     let mut activations = Vec::new();
+    let mut needs_attention = Vec::new();
     let mut active_count = 0;
+    let mut needs_count = 0;
     for runtime in reg.sessions.values_mut() {
         let prev = runtime.prev_state;
         runtime.recompute();
@@ -168,16 +175,25 @@ async fn scan_once(
 
         if Some(now_state) != prev {
             changed = true;
-            // Pop the window when a session starts working or starts needing you.
+            // Auto-popup the window only when a session starts *working*.
             if displayable
-                && (now_state == SessionState::Running || now_state == SessionState::NeedsInput)
+                && now_state == SessionState::Running
                 && prev != Some(SessionState::Running)
             {
                 activations.push(runtime.snapshot.clone());
             }
+            // Notify (no focus-steal) when a session starts *needing you* —
+            // includes Running→NeedsInput, the "agent handed back to you" moment
+            // the old activation edge silently dropped.
+            if displayable && now_state == SessionState::NeedsInput {
+                needs_attention.push(runtime.snapshot.clone());
+            }
         }
         if displayable && now_state == SessionState::Running {
             active_count += 1;
+        }
+        if displayable && now_state == SessionState::NeedsInput {
+            needs_count += 1;
         }
         runtime.prev_state = Some(now_state);
     }
@@ -211,6 +227,8 @@ async fn scan_once(
         changed,
         activations,
         active_count,
+        needs_count,
+        needs_attention,
     }
 }
 

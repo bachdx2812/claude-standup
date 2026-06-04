@@ -8,6 +8,7 @@ export type Lang = "en" | "vi";
 const en = {
   sessions: "Sessions",
   noneActive: "None active.",
+  needsYou: "Needs you",
   emptyTitle: "No active sessions right now.",
   emptyHint: "Start Claude Code in any project — it'll appear here.",
   keyDecisions: "Key Decisions",
@@ -50,6 +51,7 @@ export type TKey = keyof Dict;
 const vi: Dict = {
   sessions: "Phiên",
   noneActive: "Không có phiên nào.",
+  needsYou: "Cần bạn",
   emptyTitle: "Chưa có phiên nào đang hoạt động.",
   emptyHint: "Mở Claude Code ở dự án bất kỳ — nó sẽ hiện ở đây.",
   keyDecisions: "Quyết định chính",

@@ -214,6 +214,13 @@ impl SessionRuntime {
             now,
         );
         let current_status = analysis::status_map::current_status(&self.recent);
+        // Only while waiting on you: extract the agent's question for the
+        // attention notification + rail subtitle.
+        let pending_question = if state == SessionState::NeedsInput {
+            analysis::pending_question::pending_question(&self.recent)
+        } else {
+            None
+        };
         let subagent_count = self.subagent_count;
 
         let label = self
@@ -241,6 +248,7 @@ impl SessionRuntime {
             context_used_tokens: self.context_used_tokens,
             context_limit: pricing::context_tier_limit(self.context_peak_tokens),
             model: self.model.clone(),
+            pending_question,
         };
     }
 }
@@ -267,6 +275,7 @@ fn empty_snapshot(id: &str, label: String) -> SessionSnapshot {
         context_used_tokens: 0,
         context_limit: DEFAULT_CONTEXT_LIMIT,
         model: None,
+        pending_question: None,
     }
 }
 

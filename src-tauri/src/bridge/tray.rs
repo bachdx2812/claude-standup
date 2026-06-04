@@ -41,16 +41,20 @@ pub fn build_tray(app: &AppHandle) -> tauri::Result<()> {
     Ok(())
 }
 
-/// Reflect the active-session count in the menubar title + tooltip.
-pub fn update_count(app: &AppHandle, active: usize) {
+/// Reflect the active + needs-you counts in the menubar title + tooltip.
+/// `●R` = sessions working, `🔔N` = sessions waiting on you.
+pub fn update_count(app: &AppHandle, active: usize, needs: usize) {
     if let Some(tray) = app.tray_by_id("monitor-tray") {
-        let title: Option<String> = if active > 0 {
-            Some(format!("●{active}"))
-        } else {
-            None
+        let title: Option<String> = match (active, needs) {
+            (a, n) if a > 0 && n > 0 => Some(format!("●{a} 🔔{n}")),
+            (_, n) if n > 0 => Some(format!("🔔{n}")),
+            (a, _) if a > 0 => Some(format!("●{a}")),
+            _ => None,
         };
         let _ = tray.set_title(title);
-        let _ = tray.set_tooltip(Some(format!("Claude Monitor — {active} active")));
+        let _ = tray.set_tooltip(Some(format!(
+            "Claude Monitor — {active} active · {needs} need you"
+        )));
     }
 }
 
