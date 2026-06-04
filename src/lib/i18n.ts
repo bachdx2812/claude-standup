@@ -39,6 +39,9 @@ const en = {
   summaryModelPlaceholder: "blank = Claude default",
   language: "Language",
   checkUpdates: "Check for updates",
+  updChecking: "Checking…",
+  updUpToDate: "You're up to date.",
+  updError: "Check failed.",
 };
 
 type Dict = typeof en;
@@ -78,6 +81,9 @@ const vi: Dict = {
   summaryModelPlaceholder: "để trống = mặc định Claude",
   language: "Ngôn ngữ",
   checkUpdates: "Kiểm tra cập nhật",
+  updChecking: "Đang kiểm tra…",
+  updUpToDate: "Đã là bản mới nhất.",
+  updError: "Kiểm tra thất bại.",
 };
 
 const dicts: Record<Lang, Dict> = { en, vi };

@@ -1,17 +1,21 @@
 import { check } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
 
-// Check GitHub Releases for a newer signed build; if found, confirm → download +
-// install → relaunch. `silent` suppresses the up-to-date / error dialogs (used for
-// the quiet check on launch); the Settings button passes silent=false.
-export async function checkForUpdate(opts?: { silent?: boolean }): Promise<void> {
-  const silent = opts?.silent ?? false;
+export type UpdateStatus = "" | "checking" | "uptodate" | "error";
+
+// Check GitHub Releases for a newer signed build. Progress is reported via
+// `onStatus` (for inline UI — no menu-closing, no native "up to date" popup);
+// when an update is found it confirms, downloads, installs, and relaunches.
+export async function checkForUpdate(onStatus?: (s: UpdateStatus) => void): Promise<void> {
+  const status = onStatus ?? (() => {});
   try {
+    status("checking");
     const update = await check();
     if (!update) {
-      if (!silent) window.alert("You're on the latest version.");
+      status("uptodate");
       return;
     }
+    status("");
     const ok = window.confirm(
       `Update available: ${update.version}\n\n${update.body ?? ""}\n\nInstall and relaunch now?`,
     );
@@ -19,7 +23,7 @@ export async function checkForUpdate(opts?: { silent?: boolean }): Promise<void>
     await update.downloadAndInstall();
     await relaunch();
   } catch (e) {
-    if (!silent) window.alert(`Update check failed: ${String(e)}`);
-    // On the launch auto-check, stay quiet (e.g. offline, or no release yet).
+    status("error");
+    console.error("update check failed:", e);
   }
 }

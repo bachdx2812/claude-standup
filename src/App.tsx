@@ -65,7 +65,7 @@ export default function App() {
 
   // Quietly check GitHub Releases for a newer build shortly after launch.
   useEffect(() => {
-    const id = setTimeout(() => checkForUpdate({ silent: true }), 4000);
+    const id = setTimeout(() => checkForUpdate(), 4000);
     return () => clearTimeout(id);
   }, []);
 

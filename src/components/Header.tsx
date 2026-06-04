@@ -3,7 +3,7 @@ import { fetchSettings, setAutoPopup, setSummaryModel, snoozePopups } from "../l
 import { contextColor, formatCost } from "../lib/format";
 import { t, type Lang } from "../lib/i18n";
 import { useLang } from "../store/lang-store";
-import { checkForUpdate } from "../lib/updater";
+import { checkForUpdate, type UpdateStatus } from "../lib/updater";
 import { getVersion } from "@tauri-apps/api/app";
 
 interface HeaderProps {
@@ -29,6 +29,7 @@ export default function Header({
   const [model, setModel] = useState("");
   const [open, setOpen] = useState(false);
   const [version, setVersion] = useState("");
+  const [upd, setUpd] = useState<UpdateStatus>("");
   const { lang, setLang } = useLang();
   const gearRef = useRef<HTMLButtonElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
@@ -145,13 +146,20 @@ export default function Header({
           <div className="settings-divider" />
           <button
             className="snooze"
-            onClick={() => {
-              setOpen(false);
-              checkForUpdate();
-            }}
+            disabled={upd === "checking"}
+            onClick={() => checkForUpdate(setUpd)}
           >
             {t("checkUpdates")}
           </button>
+          {upd && (
+            <div className="update-status">
+              {upd === "checking"
+                ? t("updChecking")
+                : upd === "uptodate"
+                  ? t("updUpToDate")
+                  : t("updError")}
+            </div>
+          )}
           <div className="app-version">Claude StandUp v{version}</div>
         </div>
       )}
