@@ -49,5 +49,4 @@ export interface DecisionEvent {
 export interface Settings {
   autoPopup: boolean;
   snoozed: boolean;
-  summaryModel: string;
 }

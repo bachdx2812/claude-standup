@@ -1,4 +1,4 @@
-// Persist user settings (auto-popup, summary model) to a small JSON in the app
+// Persist user settings (auto-popup) to a small JSON in the app
 // config dir, so they survive restarts. Hand-rolled (no plugin). `snooze_until`
 // is intentionally NOT persisted — snoozing is a session-scoped action.
 
@@ -12,8 +12,6 @@ use tauri::{AppHandle, Manager};
 pub struct PersistedSettings {
     #[serde(default = "default_true")]
     pub auto_popup: bool,
-    #[serde(default)]
-    pub summary_model: String,
 }
 
 fn default_true() -> bool {
@@ -24,7 +22,6 @@ impl Default for PersistedSettings {
     fn default() -> Self {
         Self {
             auto_popup: true,
-            summary_model: String::new(),
         }
     }
 }
@@ -47,10 +44,6 @@ pub fn load(app: &AppHandle) -> PersistedSettings {
 /// Apply persisted settings to the live state (once, at startup).
 pub fn apply(s: PersistedSettings, state: &AppState) {
     state.auto_popup.store(s.auto_popup, Relaxed);
-    *state
-        .summary_model
-        .lock()
-        .unwrap_or_else(|e| e.into_inner()) = s.summary_model;
 }
 
 /// Snapshot the current live settings to disk (best-effort).
@@ -60,11 +53,6 @@ pub fn save(app: &AppHandle, state: &AppState) {
     };
     let s = PersistedSettings {
         auto_popup: state.auto_popup.load(Relaxed),
-        summary_model: state
-            .summary_model
-            .lock()
-            .unwrap_or_else(|e| e.into_inner())
-            .clone(),
     };
     if let Some(dir) = path.parent() {
         let _ = std::fs::create_dir_all(dir);

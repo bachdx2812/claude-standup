@@ -72,7 +72,6 @@ pub fn toggle_window(window: tauri::WebviewWindow) {
 pub struct SettingsDto {
     pub auto_popup: bool,
     pub snoozed: bool,
-    pub summary_model: String,
 }
 
 #[tauri::command]
@@ -81,11 +80,6 @@ pub fn get_settings(state: State<'_, AppState>) -> SettingsDto {
     SettingsDto {
         auto_popup: state.auto_popup.load(Relaxed),
         snoozed: state.snooze_until.load(Relaxed) > now,
-        summary_model: state
-            .summary_model
-            .lock()
-            .unwrap_or_else(|e| e.into_inner())
-            .clone(),
     }
 }
 
@@ -97,16 +91,6 @@ pub async fn summarize_session(
     session_id: String,
     state: State<'_, AppState>,
 ) -> Result<String, String> {
-    let model = state
-        .summary_model
-        .lock()
-        .unwrap_or_else(|e| e.into_inner())
-        .clone();
-    let model_opt = if model.trim().is_empty() {
-        None
-    } else {
-        Some(model)
-    };
     let (snapshot, decisions) = {
         let reg = state.registry.read().await;
         let rt = reg
@@ -116,16 +100,7 @@ pub async fn summarize_session(
         (rt.snapshot.clone(), rt.extractor.events.clone())
     };
     let prompt = crate::llm::prompt::build_prompt(&snapshot, &decisions);
-    crate::llm::claude_cli::summarize(&prompt, model_opt.as_deref()).await
-}
-
-#[tauri::command]
-pub fn set_summary_model(model: String, state: State<'_, AppState>, app: tauri::AppHandle) {
-    *state
-        .summary_model
-        .lock()
-        .unwrap_or_else(|e| e.into_inner()) = model;
-    crate::settings::save(&app, &state);
+    crate::llm::claude_cli::summarize(&prompt, None).await
 }
 
 #[tauri::command]

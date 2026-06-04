@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { fetchSettings, setAutoPopup, setSummaryModel, snoozePopups } from "../lib/tauri-events";
+import { fetchSettings, setAutoPopup, snoozePopups } from "../lib/tauri-events";
 import { contextColor, formatCost } from "../lib/format";
 import { t, type Lang } from "../lib/i18n";
 import { useLang } from "../store/lang-store";
@@ -26,7 +26,6 @@ export default function Header({
   maxContextPct,
 }: HeaderProps) {
   const [autoPopup, setAuto] = useState(true);
-  const [model, setModel] = useState("");
   const [open, setOpen] = useState(false);
   const [version, setVersion] = useState("");
   const [upd, setUpd] = useState<UpdateStatus>("");
@@ -48,10 +47,7 @@ export default function Header({
 
   useEffect(() => {
     fetchSettings()
-      .then((s) => {
-        setAuto(s.autoPopup);
-        setModel(s.summaryModel);
-      })
+      .then((s) => setAuto(s.autoPopup))
       .catch(() => {});
     getVersion().then(setVersion).catch(() => {});
   }, []);
@@ -60,11 +56,6 @@ export default function Header({
     const next = !autoPopup;
     setAuto(next);
     setAutoPopup(next).catch(() => {});
-  };
-
-  const onModel = (v: string) => {
-    setModel(v);
-    setSummaryModel(v).catch(() => {});
   };
 
   return (
@@ -82,10 +73,14 @@ export default function Header({
           )}
         </span>
       )}
-      <span className={`active-badge${running > 0 ? " on" : ""}`}>
+      <span className={`status-chip${running > 0 ? " running" : ""}`}>
         {running > 0 ? `● ${running} ${t("runningShort")}` : t("idleShort")}
-        {needs > 0 ? ` · 🔔 ${needs} ${t("needYou")}` : ""}
       </span>
+      {needs > 0 && (
+        <span className="status-chip needs">
+          🔔 {needs} {t("needYou")}
+        </span>
+      )}
       <button
         ref={gearRef}
         className="gear"
@@ -128,20 +123,6 @@ export default function Header({
           >
             {t("snooze1h")}
           </button>
-
-          <div className="settings-divider" />
-
-          <label className="settings-field">
-            <span>{t("summaryModel")}</span>
-            <input
-              placeholder={t("summaryModelPlaceholder")}
-              value={model}
-              onChange={(e) => onModel(e.target.value)}
-            />
-          </label>
-          <div className="disclosure">
-            Summaries run the local <code>claude -p</code> (your Claude login) — no API key.
-          </div>
 
           <div className="settings-divider" />
           <button

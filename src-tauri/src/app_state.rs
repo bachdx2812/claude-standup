@@ -15,7 +15,7 @@ use serde_json::Value;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, AtomicI64};
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use tokio::sync::RwLock;
 
 /// How many recent raw lines to retain per session (enough for state/status).
@@ -289,8 +289,6 @@ pub struct AppState {
     pub snooze_until: Arc<AtomicI64>,
     /// Unix seconds of the last popup — debounce against focus-steal spam.
     pub last_popup: Arc<AtomicI64>,
-    /// Model for on-demand summaries (blank = the Claude CLI's default).
-    pub summary_model: Arc<Mutex<String>>,
 }
 
 impl AppState {
@@ -300,7 +298,6 @@ impl AppState {
             auto_popup: Arc::new(AtomicBool::new(true)),
             snooze_until: Arc::new(AtomicI64::new(0)),
             last_popup: Arc::new(AtomicI64::new(0)),
-            summary_model: Arc::new(Mutex::new(String::new())),
         }
     }
 }

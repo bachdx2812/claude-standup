@@ -21,9 +21,6 @@ export const snoozePopups = (minutes: number): Promise<void> =>
 export const summarizeSession = (sessionId: string): Promise<string> =>
   invoke<string>("summarize_session", { sessionId });
 
-export const setSummaryModel = (model: string): Promise<void> =>
-  invoke("set_summary_model", { model });
-
 /** Subscribe to live snapshot pushes from the Rust watcher. */
 export const onSessionsUpdate = (
   cb: (sessions: SessionSnapshot[]) => void,
