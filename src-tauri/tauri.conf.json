@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "monitor",
-        "title": "Claude StandUp",
+        "title": "",
         "width": 880,
         "height": 600,
         "minWidth": 720,

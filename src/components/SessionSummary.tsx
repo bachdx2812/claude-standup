@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { summarizeSession } from "../lib/tauri-events";
 import { SummaryMarkdown } from "./summary-markdown";
+import { contextColor, contextPct, formatCost, projectName } from "../lib/format";
 import { t } from "../lib/i18n";
 import type { SessionSnapshot } from "../lib/types";
 
@@ -74,8 +75,19 @@ export default function SessionSummary({ session }: { session?: SessionSnapshot 
 
   if (!session) return null;
 
+  const pct = contextPct(session.contextUsedTokens, session.contextLimit);
+  const hasCost = (session.costUsd ?? 0) > 0;
+
   return (
     <div className="rail-summary">
+      <div className="summary-id">
+        <div className="summary-id-title">{projectName(session)}</div>
+        <div className="summary-id-meta">
+          {session.model && <span>{session.model}</span>}
+          {hasCost && <span className="sid-cost">{formatCost(session.costUsd)}</span>}
+          {pct !== null && <span style={{ color: contextColor(pct) }}>{pct}% ctx</span>}
+        </div>
+      </div>
       <div className="summarize-head">
         <span className="summarize-label">✦ {t("summary")}</span>
         {summarizing && <span className="summarizing">● {t("summarizing")}</span>}

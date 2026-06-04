@@ -222,7 +222,7 @@ export function drawWorker(
   }
 
   // Name.
-  ctx.fillStyle = summoned ? ACCENT : "rgba(210,220,235,0.9)";
+  ctx.fillStyle = summoned ? ACCENT : "rgba(214,224,238,0.96)";
   ctx.font = "9px ui-monospace, monospace";
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
@@ -235,7 +235,7 @@ export function drawWorker(
   ctx.font = "8px ui-monospace, monospace";
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
-  ctx.fillStyle = "rgba(148,163,184,0.85)";
+  ctx.fillStyle = "rgba(162,176,196,0.95)";
   ctx.fillText(formatCost(s.costUsd ?? 0), x, y + 25);
 
   if (s.contextLimit > 0 && pct !== null) {
@@ -323,7 +323,7 @@ export function drawBoss(
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
   ctx.fillText(t("boss"), x, y + 3);
-  ctx.fillStyle = "rgba(100,116,139,0.9)";
+  ctx.fillStyle = "rgba(132,145,166,0.95)";
   ctx.font = "8px ui-monospace, monospace";
   ctx.fillText(t("you"), x, y + 13);
   ctx.restore();
