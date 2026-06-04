@@ -6,6 +6,26 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-06-04
+
+### Added
+
+- **Native macOS fullscreen** — the app now uses a regular activation policy, so
+  the green title-bar button enters fullscreen and a Dock icon appears. Clicking
+  the Dock icon reopens the window; the menubar tray still works.
+
+### Removed
+
+- **Summary-model setting** — the optional summary-model override is gone;
+  summaries always use the local `claude` CLI default model.
+
+### Changed
+
+- **App-window polish** — WCAG-AA muted text, calmer (non-uppercase) section
+  labels, tactile press + keyboard focus rings, a summary-column identity header,
+  brighter office canvas text, and a blank native title bar (removes the duplicate
+  "Claude StandUp").
+
 ## [1.1.0] - 2026-06-04
 
 ### Added
