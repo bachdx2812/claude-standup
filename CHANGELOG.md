@@ -6,6 +6,30 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-06-04
+
+### Added
+
+- **Attention routing** — the menubar tray shows a `🔔N` badge when sessions need
+  your input, and a notify-only desktop notification fires the moment a session
+  hands back to you (including Running → NeedsInput, which previously fired
+  nothing), carrying the agent's pending question. A pinned "Needs you" group sits
+  atop the session rail, each card showing the question.
+
+### Fixed
+
+- **Update check** — the "Check for updates" button no longer closes the settings
+  popover; it shows inline status (checking / up to date / failed) instead of
+  native alerts. The launch auto-check is now silent.
+
+### Changed
+
+- **Readability & affordance** — lifted muted text to WCAG AA on the dark theme,
+  looser summary line-height, tactile `:active` press and keyboard `:focus-visible`
+  rings on cards and buttons.
+- **Landing page** — removed AI-design tells, moved facts to chips, added card
+  accents.
+
 ## [1.0.0] - 2026-06-04
 
 Initial release.
