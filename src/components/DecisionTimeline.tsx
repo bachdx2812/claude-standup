@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { fetchDecisions } from "../lib/tauri-events";
 import { decisionIcon } from "../lib/format";
+import { t } from "../lib/i18n";
 import type { DecisionEvent, SessionSnapshot } from "../lib/types";
 
 // The checked session's key-decisions timeline (footer under the office).
@@ -25,12 +26,12 @@ export default function DecisionTimeline({ session }: { session: SessionSnapshot
 
   return (
     <div className="decisions">
-      <div className="decisions-head">Key Decisions</div>
+      <div className="decisions-head">{t("keyDecisions")}</div>
       <div className="detail-decisions">
         {loading ? (
-          <div className="muted">Loading…</div>
+          <div className="muted">{t("loading")}</div>
         ) : events.length === 0 ? (
-          <div className="muted">No key decisions captured yet.</div>
+          <div className="muted">{t("noDecisions")}</div>
         ) : (
           [...events].reverse().map((e, i) => (
             <div className="decision" key={e.refId ?? i}>

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { summarizeSession } from "../lib/tauri-events";
 import { SummaryMarkdown } from "./summary-markdown";
+import { t } from "../lib/i18n";
 import type { SessionSnapshot } from "../lib/types";
 
 const AUTO_SUMMARY_MS = 30_000;
@@ -76,15 +77,15 @@ export default function SessionSummary({ session }: { session?: SessionSnapshot 
   return (
     <div className="rail-summary">
       <div className="summarize-head">
-        <span className="summarize-label">✦ Summary</span>
-        {summarizing && <span className="summarizing">● summarizing…</span>}
+        <span className="summarize-label">✦ {t("summary")}</span>
+        {summarizing && <span className="summarizing">● {t("summarizing")}</span>}
       </div>
       {summaryError ? (
         <div className="summary-error">{summaryError}</div>
       ) : summary ? (
         <SummaryMarkdown text={summary} />
       ) : (
-        <div className="muted">{summarizing ? "Generating summary…" : "—"}</div>
+        <div className="muted">{summarizing ? t("generating") : "—"}</div>
       )}
     </div>
   );

@@ -1,5 +1,6 @@
 // Small presentation helpers shared across components.
 
+import { t } from "./i18n";
 import type { DecisionKind, SessionSnapshot, SessionState } from "./types";
 
 export function nowSec(): number {
@@ -48,11 +49,11 @@ export function stateColor(state: SessionState): string {
 export function stateLabel(state: SessionState): string {
   switch (state) {
     case "running":
-      return "Running";
+      return t("running");
     case "needsInput":
-      return "Needs Input";
+      return t("needsInput");
     default:
-      return "Idle";
+      return t("idle");
   }
 }
 

@@ -9,6 +9,7 @@ import {
   stateColor,
   stateLabel,
 } from "../lib/format";
+import { t } from "../lib/i18n";
 import type { SessionSnapshot } from "../lib/types";
 
 const ACCENT = "#34d399";
@@ -203,7 +204,7 @@ export function drawWorker(
     ctx.shadowBlur = 0;
     // "CHECKING" pill above the status bubble (this is the session you're inspecting)
     ctx.font = "bold 8px ui-monospace, monospace";
-    const tag = "● CHECKING";
+    const tag = `● ${t("checking")}`;
     const pillH = 14;
     const pillY = y - 82;
     const pw = ctx.measureText(tag).width + 14;
@@ -321,10 +322,10 @@ export function drawBoss(
   ctx.font = "bold 9px ui-monospace, monospace";
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
-  ctx.fillText("BOSS", x, y + 3);
+  ctx.fillText(t("boss"), x, y + 3);
   ctx.fillStyle = "rgba(100,116,139,0.9)";
   ctx.font = "8px ui-monospace, monospace";
-  ctx.fillText("(you)", x, y + 13);
+  ctx.fillText(t("you"), x, y + 13);
   ctx.restore();
 }
 

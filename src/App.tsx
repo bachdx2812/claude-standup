@@ -7,12 +7,15 @@ import SessionSummary from "./components/SessionSummary";
 import SessionDetail from "./components/SessionDetail";
 import { fetchSessions, onSessionsUpdate } from "./lib/tauri-events";
 import { useSessions } from "./store/sessions-store";
+import { useLang } from "./store/lang-store";
 import { contextPct, nowSec } from "./lib/format";
+import { t } from "./lib/i18n";
 
 export default function App() {
   const sessions = useSessions((s) => s.sessions);
   const setSessions = useSessions((s) => s.setSessions);
   const [selected, setSelected] = useState<string | null>(null);
+  useLang((s) => s.lang); // re-render the chrome when the language changes
   const [windowHours, setWindowHours] = useState(
     () => Number(localStorage.getItem("cm.windowHours")) || 3,
   );
@@ -92,9 +95,11 @@ export default function App() {
           {/* Top row: sessions list + office. */}
           <div className="app-main">
             <aside className="left-rail">
-              <div className="rail-head">Sessions · {visible.length}</div>
+              <div className="rail-head">
+                {t("sessions")} · {visible.length}
+              </div>
               {visible.length === 0 ? (
-                <div className="rail-empty muted">None active.</div>
+                <div className="rail-empty muted">{t("noneActive")}</div>
               ) : (
                 <div className="rail-cards">
                   {visible.map((s) => (
@@ -112,8 +117,8 @@ export default function App() {
             <section className="office-stage">
               {visible.length === 0 ? (
                 <div className="app-empty">
-                  <p>No active sessions right now.</p>
-                  <p className="muted">Start Claude Code in any project — it'll appear here.</p>
+                  <p>{t("emptyTitle")}</p>
+                  <p className="muted">{t("emptyHint")}</p>
                 </div>
               ) : (
                 <IsoOffice sessions={visible} selected={selected} onSelect={setSelected} />

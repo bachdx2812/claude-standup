@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { isRecent, projectFolder } from "../lib/format";
+import { t } from "../lib/i18n";
 import { drawBeam, drawBoss, drawDecor, drawWorker, roundRect } from "./office-draw";
 import type { SessionSnapshot } from "../lib/types";
 
@@ -250,7 +251,7 @@ export default function IsoOffice({ sessions, selected, onSelect }: Props) {
   return (
     <div className="office">
       <div className="office-head">
-        Office · {sessions.length} at desk{sessions.length === 1 ? "" : "s"}
+        {t("office")} · {sessions.length} {sessions.length === 1 ? t("desk") : t("desks")}
       </div>
       <div className="office-canvas-wrap" ref={wrapRef}>
         <canvas

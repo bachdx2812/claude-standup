@@ -1,6 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { fetchSettings, setAutoPopup, setSummaryModel, snoozePopups } from "../lib/tauri-events";
 import { contextColor, formatCost } from "../lib/format";
+import { t, type Lang } from "../lib/i18n";
+import { useLang } from "../store/lang-store";
 
 interface HeaderProps {
   running: number;
@@ -24,6 +26,21 @@ export default function Header({
   const [autoPopup, setAuto] = useState(true);
   const [model, setModel] = useState("");
   const [open, setOpen] = useState(false);
+  const { lang, setLang } = useLang();
+  const gearRef = useRef<HTMLButtonElement>(null);
+  const popRef = useRef<HTMLDivElement>(null);
+
+  // Close the settings popover on a click outside it (or the gear).
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (popRef.current?.contains(target) || gearRef.current?.contains(target)) return;
+      setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [open]);
 
   useEffect(() => {
     fetchSettings()
@@ -61,29 +78,41 @@ export default function Header({
         </span>
       )}
       <span className={`active-badge${running > 0 ? " on" : ""}`}>
-        {running > 0 ? `● ${running} running` : "idle"}
-        {needs > 0 ? ` · 🔔 ${needs} need you` : ""}
+        {running > 0 ? `● ${running} ${t("runningShort")}` : t("idleShort")}
+        {needs > 0 ? ` · 🔔 ${needs} ${t("needYou")}` : ""}
       </span>
-      <button className="gear" onClick={() => setOpen((o) => !o)} title="Settings">
+      <button
+        ref={gearRef}
+        className="gear"
+        onClick={() => setOpen((o) => !o)}
+        title="Settings"
+      >
         ⚙
       </button>
       {open && (
-        <div className="settings-pop">
+        <div className="settings-pop" ref={popRef}>
           <label className="settings-field">
-            <span>Show sessions active within</span>
+            <span>{t("showWithin")}</span>
             <select
               value={windowHours}
               onChange={(e) => onWindowChange(Number(e.target.value))}
             >
-              <option value={1}>1 hour</option>
-              <option value={3}>3 hours</option>
-              <option value={12}>12 hours</option>
-              <option value={24}>24 hours</option>
+              <option value={1}>{t("hour1")}</option>
+              <option value={3}>{t("hour3")}</option>
+              <option value={12}>{t("hour12")}</option>
+              <option value={24}>{t("hour24")}</option>
+            </select>
+          </label>
+          <label className="settings-field">
+            <span>{t("language")}</span>
+            <select value={lang} onChange={(e) => setLang(e.target.value as Lang)}>
+              <option value="en">English</option>
+              <option value="vi">Tiếng Việt</option>
             </select>
           </label>
           <label className="settings-row">
             <input type="checkbox" checked={autoPopup} onChange={toggleAuto} />
-            Auto-popup on activity
+            {t("autoPopup")}
           </label>
           <button
             className="snooze"
@@ -92,15 +121,15 @@ export default function Header({
               setOpen(false);
             }}
           >
-            Snooze popups 1h
+            {t("snooze1h")}
           </button>
 
           <div className="settings-divider" />
 
           <label className="settings-field">
-            <span>Summary model (optional)</span>
+            <span>{t("summaryModel")}</span>
             <input
-              placeholder="blank = Claude default"
+              placeholder={t("summaryModelPlaceholder")}
               value={model}
               onChange={(e) => onModel(e.target.value)}
             />
