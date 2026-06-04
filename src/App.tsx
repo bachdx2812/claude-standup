@@ -66,8 +66,9 @@ export default function App() {
     const p = contextPct(s.contextUsedTokens, s.contextLimit);
     return p === null ? acc : Math.max(acc ?? 0, p);
   }, null);
-  // Keep the open detail even if its session just dropped off the board.
-  const selectedSession = sessions.find((s) => s.id === selected);
+  // Only while the checked session is still active (in view): hide the detail
+  // footer + summary once it ages out or there are no sessions.
+  const selectedSession = visible.find((s) => s.id === selected);
 
   return (
     <div className="app-shell">
