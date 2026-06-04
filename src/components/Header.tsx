@@ -4,6 +4,7 @@ import { contextColor, formatCost } from "../lib/format";
 import { t, type Lang } from "../lib/i18n";
 import { useLang } from "../store/lang-store";
 import { checkForUpdate } from "../lib/updater";
+import { getVersion } from "@tauri-apps/api/app";
 
 interface HeaderProps {
   running: number;
@@ -27,6 +28,7 @@ export default function Header({
   const [autoPopup, setAuto] = useState(true);
   const [model, setModel] = useState("");
   const [open, setOpen] = useState(false);
+  const [version, setVersion] = useState("");
   const { lang, setLang } = useLang();
   const gearRef = useRef<HTMLButtonElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
@@ -50,6 +52,7 @@ export default function Header({
         setModel(s.summaryModel);
       })
       .catch(() => {});
+    getVersion().then(setVersion).catch(() => {});
   }, []);
 
   const toggleAuto = () => {
@@ -149,6 +152,7 @@ export default function Header({
           >
             {t("checkUpdates")}
           </button>
+          <div className="app-version">Claude StandUp v{version}</div>
         </div>
       )}
     </header>

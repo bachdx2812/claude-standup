@@ -6,7 +6,7 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-## [0.1.0] - 2026-06-04
+## [1.0.0] - 2026-06-04
 
 Initial release.
 
@@ -31,6 +31,12 @@ Initial release.
 - **Live wall clock** showing the machine time.
 - **macOS app** via Tauri v2 (Rust core + React frontend), with local dev/build
   scripts that pin the rustup stable toolchain.
+- **Internationalization** — English + Tiếng Việt, switchable in Settings (persisted).
+- **Persistent settings** — auto-popup + summary model survive restarts.
+- **Auto-update** — in-app updates via the Tauri updater against signed GitHub
+  Releases, with a "Check for updates" action and the app version shown in Settings.
+- **Performance** — the office canvas idles at a few fps when nothing animates, the
+  watcher caches its directory walk, and the `claude` binary/PATH lookup is cached.
 
 ### Notes
 
@@ -39,5 +45,5 @@ Initial release.
 - The app reads `~/.claude/projects/**/*.jsonl` read-only and shells out to
   `claude -p` for summaries. Nothing else leaves your machine.
 
-[Unreleased]: https://github.com/bachdx2812/claude-standup/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/bachdx2812/claude-standup/releases/tag/v0.1.0
+[Unreleased]: https://github.com/bachdx2812/claude-standup/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/bachdx2812/claude-standup/releases/tag/v1.0.0

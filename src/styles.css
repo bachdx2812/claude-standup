@@ -780,6 +780,13 @@ body {
   max-width: 200px;
   line-height: 1.4;
 }
+.app-version {
+  font-size: 10.5px;
+  color: var(--muted);
+  text-align: center;
+  opacity: 0.75;
+  margin-top: 2px;
+}
 
 /* scrollbars */
 ::-webkit-scrollbar {
