@@ -16,13 +16,15 @@ export default function App() {
   const setSessions = useSessions((s) => s.setSessions);
   const [selected, setSelected] = useState<string | null>(null);
   useLang((s) => s.lang); // re-render the chrome when the language changes
-  const [windowHours, setWindowHours] = useState(
-    () => Number(localStorage.getItem("cm.windowHours")) || 3,
-  );
+  const [windowHours, setWindowHours] = useState(() => {
+    const v = Number(localStorage.getItem("cm.windowHours"));
+    return [1, 3, 12, 24].includes(v) ? v : 3;
+  });
   // Resizable footer (detail bar) so you can size it to your content — no forced scrolling.
-  const [footerH, setFooterH] = useState(
-    () => Number(localStorage.getItem("cm.footerH")) || 300,
-  );
+  const [footerH, setFooterH] = useState(() => {
+    const v = Number(localStorage.getItem("cm.footerH"));
+    return Number.isFinite(v) && v >= 150 && v <= window.innerHeight * 0.72 ? v : 300;
+  });
   const footerHRef = useRef(footerH);
   footerHRef.current = footerH;
   const detailBarRef = useRef<HTMLDivElement>(null);

@@ -31,8 +31,8 @@ cask "claude-standup" do
   end
 
   zap trash: [
-    "~/Library/Application Support/com.bachdx.claude-monitor",
-    "~/Library/Preferences/com.bachdx.claude-monitor.plist",
-    "~/Library/Saved Application State/com.bachdx.claude-monitor.savedState",
+    "~/Library/Application Support/com.bachdx.claude-standup",
+    "~/Library/Preferences/com.bachdx.claude-standup.plist",
+    "~/Library/Saved Application State/com.bachdx.claude-standup.savedState",
   ]
 end

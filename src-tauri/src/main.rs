@@ -8,6 +8,7 @@ mod app_state;
 mod bridge;
 mod llm;
 mod model;
+mod settings;
 mod transcript;
 mod watcher;
 
@@ -53,6 +54,8 @@ fn main() {
 
             // Start the background watcher: tails ~/.claude/projects into the registry.
             let app_state = app.state::<AppState>().inner().clone();
+            // Load persisted settings onto the live state before anything reads them.
+            settings::apply(settings::load(app.handle()), &app_state);
             watcher::spawn(app.handle().clone(), app_state);
 
             Ok(())

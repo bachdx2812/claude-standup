@@ -112,13 +112,15 @@ pub async fn summarize_session(
 }
 
 #[tauri::command]
-pub fn set_summary_model(model: String, state: State<'_, AppState>) {
+pub fn set_summary_model(model: String, state: State<'_, AppState>, app: tauri::AppHandle) {
     *state.summary_model.lock().unwrap_or_else(|e| e.into_inner()) = model;
+    crate::settings::save(&app, &state);
 }
 
 #[tauri::command]
-pub fn set_auto_popup(enabled: bool, state: State<'_, AppState>) {
+pub fn set_auto_popup(enabled: bool, state: State<'_, AppState>, app: tauri::AppHandle) {
     state.auto_popup.store(enabled, Relaxed);
+    crate::settings::save(&app, &state);
 }
 
 #[tauri::command]
