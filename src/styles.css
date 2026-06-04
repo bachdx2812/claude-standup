@@ -5,7 +5,7 @@
   --panel-2: #0e131e;
   --border: #1f2632;
   --text: #cbd5e1;
-  --muted: #64748b;
+  --muted: #7c8a9e; /* lifted from #64748b → ~5.4:1 on --bg (WCAG AA at 12px) */
   --accent: #34d399;
   font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
   color-scheme: dark;
@@ -132,6 +132,11 @@ body {
 }
 .snooze:hover {
   border-color: var(--accent);
+}
+.gear:active,
+.snooze:active,
+.summarize-btn:active {
+  transform: translateY(1px);
 }
 
 /* ---- body layout ---- */
@@ -280,14 +285,27 @@ body {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  transition: border-color 0.2s, background 0.2s;
+  transition: border-color 0.2s, background 0.2s, transform 0.1s;
 }
 .card:hover {
   background: #161d2c;
+  border-color: rgba(148, 163, 184, 0.22);
+}
+.card:active {
+  transform: translateY(1px);
 }
 .card.selected {
   border-color: var(--state);
+  background: #161d2c;
   box-shadow: 0 0 0 1px var(--state) inset;
+}
+/* Keyboard focus ring — the list is navigable by Tab. */
+.card:focus-visible,
+.gear:focus-visible,
+.snooze:focus-visible,
+.summarize-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 .card-head {
   display: flex;
@@ -355,7 +373,7 @@ body {
 }
 .card-sub {
   font-size: 10.5px;
-  color: #475569;
+  color: #5d6b80;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -691,7 +709,7 @@ body {
 }
 .summary-text {
   font-size: 12px;
-  line-height: 1.5;
+  line-height: 1.6;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -701,7 +719,7 @@ body {
 /* Rendered-markdown summary. */
 .summary-md {
   font-size: 12px;
-  line-height: 1.5;
+  line-height: 1.6;
   overflow-wrap: anywhere;
   background: var(--panel);
   border: 1px solid var(--border);
@@ -818,4 +836,7 @@ body {
 ::-webkit-scrollbar-thumb {
   background: var(--border);
   border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2c3647;
 }
