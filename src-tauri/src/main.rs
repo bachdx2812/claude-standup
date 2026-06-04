@@ -43,16 +43,16 @@ fn main() {
             bridge::commands::set_auto_popup,
             bridge::commands::snooze_popups,
             bridge::commands::summarize_session,
-            bridge::commands::set_summary_model,
         ])
         .setup(|app| {
             // Build the menubar tray (icon + Show/Quit menu + click-to-toggle).
             bridge::tray::build_tray(app.handle())?;
 
-            // Menubar-only: no Dock icon. Accessory policy hides it at runtime in
-            // dev and bundled runs. LSUIElement (Info.plist) is added in phase 07.
+            // Regular activation policy: shows a Dock icon and enables native macOS
+            // fullscreen (green button + a separate Space). The menubar tray stays,
+            // so the app is reachable both ways.
             #[cfg(target_os = "macos")]
-            app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+            app.set_activation_policy(tauri::ActivationPolicy::Regular);
 
             // Start the background watcher: tails ~/.claude/projects into the registry.
             let app_state = app.state::<AppState>().inner().clone();
@@ -62,6 +62,17 @@ fn main() {
 
             Ok(())
         })
-        .run(tauri::generate_context!())
-        .expect("error while running Claude Monitor");
+        .build(tauri::generate_context!())
+        .expect("error while building Claude Monitor")
+        .run(|_app, _event| {
+            // With a Dock icon present, clicking it when no window is visible
+            // reopens the monitor window instead of doing nothing.
+            #[cfg(target_os = "macos")]
+            if let tauri::RunEvent::Reopen { .. } = _event {
+                if let Some(w) = _app.get_webview_window("monitor") {
+                    let _ = w.show();
+                    let _ = w.set_focus();
+                }
+            }
+        });
 }
