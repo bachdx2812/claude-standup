@@ -5,6 +5,7 @@
 use std::path::{Path, PathBuf};
 use std::time::UNIX_EPOCH;
 
+#[derive(Clone)]
 pub struct SessionFile {
     pub session_id: String,
     pub path: PathBuf,

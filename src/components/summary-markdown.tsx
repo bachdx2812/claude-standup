@@ -23,12 +23,13 @@ export function SummaryMarkdown({ text }: { text: string }) {
   const lines = text.replace(/\r/g, "").split("\n");
   const out: ReactNode[] = [];
   let bullets: ReactNode[] | null = null;
-  let key = 0;
 
+  // Keys are type-prefixed + positional so reconciliation stays stable even when
+  // the element type at a given index changes between re-parses.
   const flush = () => {
     if (bullets) {
       out.push(
-        <ul key={key++} className="md-list">
+        <ul key={`ul${out.length}`} className="md-list">
           {bullets}
         </ul>,
       );
@@ -44,14 +45,14 @@ export function SummaryMarkdown({ text }: { text: string }) {
     }
     if (/^([-*_])\1{2,}$/.test(line)) {
       flush();
-      out.push(<hr key={key++} className="md-hr" />);
+      out.push(<hr key={`hr${out.length}`} className="md-hr" />);
       continue;
     }
     const h = line.match(/^(#{1,3})\s+(.*)$/);
     if (h) {
       flush();
       out.push(
-        <div key={key++} className="md-h">
+        <div key={`h${out.length}`} className="md-h">
           {inline(h[2])}
         </div>,
       );
@@ -60,12 +61,12 @@ export function SummaryMarkdown({ text }: { text: string }) {
     const b = line.match(/^[-*]\s+(.*)$/);
     if (b) {
       if (!bullets) bullets = [];
-      bullets.push(<li key={key++}>{inline(b[1])}</li>);
+      bullets.push(<li key={bullets.length}>{inline(b[1])}</li>);
       continue;
     }
     flush();
     out.push(
-      <p key={key++} className="md-p">
+      <p key={`p${out.length}`} className="md-p">
         {inline(line)}
       </p>,
     );

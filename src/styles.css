@@ -138,25 +138,23 @@ body {
 .app-body {
   flex: 1;
   display: flex;
-  flex-direction: column;
   min-height: 0;
 }
-/* Top row: office hero + session rail. */
-.app-main {
-  flex: 1;
-  display: flex;
-  min-height: 0;
-}
-/* CENTER: the office stage fills the middle. */
-.office-stage {
+/* Main column: the sessions+office row stacked over the detail+decisions footer. */
+.main-col {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
   min-height: 0;
-  background: var(--bg);
 }
-/* LEFT rail: session list. */
+/* Top row: sessions list + office. */
+.app-main {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+/* LEFT rail: sessions list. */
 .left-rail {
   flex: none;
   width: 300px;
@@ -167,7 +165,16 @@ body {
   min-height: 0;
   background: var(--panel-2);
 }
-/* RIGHT column: the checked session's summary. */
+/* CENTER: the office stage fills the middle. */
+.office-stage {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--bg);
+}
+/* FAR-RIGHT column: the checked session's summary (full height). */
 .summary-col {
   flex: none;
   width: 344px;
@@ -185,6 +192,20 @@ body {
   align-items: center;
   justify-content: center;
   gap: 6px;
+}
+/* Footer-left: the checked session's identity, flush under the sessions list
+   (same 300px width + right border so the column divider runs straight down). */
+.session-detail {
+  flex: none;
+  width: 300px;
+  min-width: 260px;
+  overflow-y: auto;
+  border-right: 1px solid var(--border);
+  padding: 11px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--panel-2);
 }
 
 /* ---- right-rail session list (sessions only) ---- */
@@ -437,7 +458,7 @@ body {
   min-height: 0;
   position: relative;
   border-top: 1px solid var(--border);
-  background: var(--panel-2);
+  background: var(--bg);
   display: flex;
 }
 /* Drag handle along the footer's top edge. */
@@ -465,36 +486,10 @@ body {
 .detail-resizer:hover::after {
   background: var(--accent);
 }
-.detail {
+/* The key-decisions timeline fills the resizable footer bar. */
+.decisions {
   flex: 1;
   min-height: 0;
-  overflow: hidden;
-  display: flex;
-  flex-direction: row;
-}
-.detail-empty {
-  color: var(--muted);
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  padding: 12px 14px;
-}
-/* LEFT: session identity + latest command. */
-.detail-info {
-  flex: none;
-  width: 340px;
-  min-width: 280px;
-  overflow-y: auto;
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-  padding: 12px 14px;
-}
-/* CENTER: the key-decisions timeline (gets the width). */
-.detail-center {
-  flex: 1;
-  min-width: 0;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -520,6 +515,7 @@ body {
   border-left: 2px solid var(--border);
   padding-left: 8px;
   font-style: italic;
+  overflow-wrap: anywhere;
 }
 /* Identity badges: cwd / branch / model / cost / context%. */
 .detail-meta {
@@ -689,6 +685,7 @@ body {
 .summary-md {
   font-size: 12px;
   line-height: 1.5;
+  overflow-wrap: anywhere;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -730,6 +727,7 @@ body {
 .summary-error {
   font-size: 11.5px;
   color: #f87171;
+  overflow-wrap: anywhere;
 }
 .summarize-head {
   display: flex;

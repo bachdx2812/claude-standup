@@ -4,6 +4,7 @@ import SessionCard from "./components/SessionCard";
 import IsoOffice from "./components/IsoOffice";
 import DecisionTimeline from "./components/DecisionTimeline";
 import SessionSummary from "./components/SessionSummary";
+import SessionDetail from "./components/SessionDetail";
 import { fetchSessions, onSessionsUpdate } from "./lib/tauri-events";
 import { useSessions } from "./store/sessions-store";
 import { contextPct, nowSec } from "./lib/format";
@@ -21,22 +22,28 @@ export default function App() {
   );
   const footerHRef = useRef(footerH);
   footerHRef.current = footerH;
+  const detailBarRef = useRef<HTMLDivElement>(null);
 
   const changeWindow = (h: number) => {
     setWindowHours(h);
     localStorage.setItem("cm.windowHours", String(h));
   };
 
+  // Resize by writing the height straight to the DOM during the drag (no React
+  // re-render per mousemove); commit to state + localStorage once on mouse-up.
   const startResize = (e: React.MouseEvent) => {
     e.preventDefault();
+    const bar = detailBarRef.current;
+    let h = footerHRef.current;
     const onMove = (ev: MouseEvent) => {
-      const h = Math.min(window.innerHeight * 0.72, Math.max(150, window.innerHeight - ev.clientY));
-      setFooterH(h);
+      h = Math.min(window.innerHeight * 0.72, Math.max(150, window.innerHeight - ev.clientY));
+      if (bar) bar.style.height = `${h}px`;
     };
     const onUp = () => {
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mouseup", onUp);
-      localStorage.setItem("cm.footerH", String(Math.round(footerHRef.current)));
+      setFooterH(h);
+      localStorage.setItem("cm.footerH", String(Math.round(h)));
     };
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onUp);
@@ -81,50 +88,53 @@ export default function App() {
         maxContextPct={maxContextPct}
       />
       <div className="app-body">
-        <div className="app-main">
-          {/* LEFT: session list. */}
-          <aside className="left-rail">
-            <div className="rail-head">Sessions · {visible.length}</div>
-            {visible.length === 0 ? (
-              <div className="rail-empty muted">None active.</div>
-            ) : (
-              <div className="rail-cards">
-                {visible.map((s) => (
-                  <SessionCard
-                    key={s.id}
-                    s={s}
-                    compact
-                    selected={s.id === selected}
-                    onSelect={() => setSelected(s.id)}
-                  />
-                ))}
-              </div>
-            )}
-          </aside>
-          {/* CENTER: the office hero — pixel employees ARE the sessions. */}
-          <section className="office-stage">
-            {visible.length === 0 ? (
-              <div className="app-empty">
-                <p>No active sessions right now.</p>
-                <p className="muted">Start Claude Code in any project — it'll appear here.</p>
-              </div>
-            ) : (
-              <IsoOffice sessions={visible} selected={selected} onSelect={setSelected} />
-            )}
-          </section>
-          {/* RIGHT: summary of the session you're checking. */}
-          {selectedSession && (
-            <aside className="summary-col">
-              <SessionSummary session={selectedSession} />
+        <div className="main-col">
+          {/* Top row: sessions list + office. */}
+          <div className="app-main">
+            <aside className="left-rail">
+              <div className="rail-head">Sessions · {visible.length}</div>
+              {visible.length === 0 ? (
+                <div className="rail-empty muted">None active.</div>
+              ) : (
+                <div className="rail-cards">
+                  {visible.map((s) => (
+                    <SessionCard
+                      key={s.id}
+                      s={s}
+                      compact
+                      selected={s.id === selected}
+                      onSelect={() => setSelected(s.id)}
+                    />
+                  ))}
+                </div>
+              )}
             </aside>
+            <section className="office-stage">
+              {visible.length === 0 ? (
+                <div className="app-empty">
+                  <p>No active sessions right now.</p>
+                  <p className="muted">Start Claude Code in any project — it'll appear here.</p>
+                </div>
+              ) : (
+                <IsoOffice sessions={visible} selected={selected} onSelect={setSelected} />
+              )}
+            </section>
+          </div>
+          {/* Footer row: detail (under the list) + key decisions (under the office) —
+              one aligned band, the detail column flush with the sessions list above. */}
+          {selectedSession && (
+            <div className="detail-bar" ref={detailBarRef} style={{ height: footerH }}>
+              <div className="detail-resizer" onMouseDown={startResize} title="Drag to resize" />
+              <SessionDetail session={selectedSession} />
+              <DecisionTimeline session={selectedSession} />
+            </div>
           )}
         </div>
-        {/* Selected session detail: full-width, drag-resizable bottom bar. */}
+        {/* Far-right: the checked session's summary, full height. */}
         {selectedSession && (
-          <div className="detail-bar" style={{ height: footerH }}>
-            <div className="detail-resizer" onMouseDown={startResize} title="Drag to resize" />
-            <DecisionTimeline session={selectedSession} />
-          </div>
+          <aside className="summary-col">
+            <SessionSummary session={selectedSession} />
+          </aside>
         )}
       </div>
     </div>

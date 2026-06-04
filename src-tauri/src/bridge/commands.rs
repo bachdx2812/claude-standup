@@ -24,9 +24,10 @@ fn rank(s: &SessionSnapshot) -> u8 {
     }
 }
 
-#[tauri::command]
-pub async fn get_sessions(state: State<'_, AppState>) -> Result<Vec<SessionSnapshot>, ()> {
-    let mut sessions: Vec<SessionSnapshot> = {
+/// Read lock → clone displayable snapshots → sort. Shared by `get_sessions` and
+/// the live `emit_sessions` push.
+pub async fn collect_displayable(state: &AppState) -> Vec<SessionSnapshot> {
+    let mut v: Vec<SessionSnapshot> = {
         let reg = state.registry.read().await;
         reg.sessions
             .values()
@@ -34,8 +35,13 @@ pub async fn get_sessions(state: State<'_, AppState>) -> Result<Vec<SessionSnaps
             .filter(SessionSnapshot::is_displayable)
             .collect()
     };
-    sort_snapshots(&mut sessions);
-    Ok(sessions)
+    sort_snapshots(&mut v);
+    v
+}
+
+#[tauri::command]
+pub async fn get_sessions(state: State<'_, AppState>) -> Result<Vec<SessionSnapshot>, ()> {
+    Ok(collect_displayable(&state).await)
 }
 
 #[tauri::command]
@@ -75,7 +81,7 @@ pub fn get_settings(state: State<'_, AppState>) -> SettingsDto {
     SettingsDto {
         auto_popup: state.auto_popup.load(Relaxed),
         snoozed: state.snooze_until.load(Relaxed) > now,
-        summary_model: state.summary_model.lock().unwrap().clone(),
+        summary_model: state.summary_model.lock().unwrap_or_else(|e| e.into_inner()).clone(),
     }
 }
 
@@ -87,7 +93,7 @@ pub async fn summarize_session(
     session_id: String,
     state: State<'_, AppState>,
 ) -> Result<String, String> {
-    let model = state.summary_model.lock().unwrap().clone();
+    let model = state.summary_model.lock().unwrap_or_else(|e| e.into_inner()).clone();
     let model_opt = if model.trim().is_empty() {
         None
     } else {
@@ -107,7 +113,7 @@ pub async fn summarize_session(
 
 #[tauri::command]
 pub fn set_summary_model(model: String, state: State<'_, AppState>) {
-    *state.summary_model.lock().unwrap() = model;
+    *state.summary_model.lock().unwrap_or_else(|e| e.into_inner()) = model;
 }
 
 #[tauri::command]

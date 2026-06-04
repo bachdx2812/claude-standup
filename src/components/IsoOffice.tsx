@@ -53,10 +53,9 @@ export default function IsoOffice({ sessions, selected, onSelect }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const workersRef = useRef<Map<string, Worker>>(new Map());
   const usedSlotsRef = useRef<Set<number>>(new Set());
-  const sessionsRef = useRef(sessions);
   const selectedRef = useRef(selected);
   const layoutRef = useRef<Layout>({ cols: 2, gap: MAX_GAP, startY: DESK_TOP });
-  sessionsRef.current = sessions;
+  const byIdRef = useRef<Map<string, SessionSnapshot>>(new Map());
   selectedRef.current = selected;
 
   // Boss message: newest prompt wins; the draw loop times it out.
@@ -87,6 +86,32 @@ export default function IsoOffice({ sessions, selected, onSelect }: Props) {
     seededRef.current = true;
   }, [sessions]);
 
+  // Reconcile desks (one Worker per session) + the id→snapshot map ONLY when the
+  // session set changes — keeps these allocations out of the per-frame draw loop.
+  useEffect(() => {
+    const byId = new Map<string, SessionSnapshot>();
+    for (const s of sessions) byId.set(s.id, s);
+    byIdRef.current = byId;
+
+    const workers = workersRef.current;
+    const used = usedSlotsRef.current;
+    for (const [id, w] of [...workers]) {
+      if (!byId.has(id)) {
+        used.delete(w.slot);
+        workers.delete(id);
+      }
+    }
+    const now = performance.now();
+    for (const s of sessions) {
+      if (!workers.has(s.id)) {
+        let slot = 0;
+        while (used.has(slot)) slot++;
+        used.add(slot);
+        workers.set(s.id, { slot, appearAt: now, phase: Math.random() * 6 });
+      }
+    }
+  }, [sessions]);
+
   // Track the wrapper size so the canvas can be sized to fit it exactly.
   useEffect(() => {
     const el = wrapRef.current;
@@ -106,11 +131,42 @@ export default function IsoOffice({ sessions, selected, onSelect }: Props) {
     if (!ctx) return;
 
     let raf = 0;
-    let last = performance.now();
+    let lastDraw = performance.now();
 
     const draw = (now: number) => {
-      const dt = Math.min(0.05, (now - last) / 1000);
-      last = now;
+      raf = requestAnimationFrame(draw);
+
+      const workers = workersRef.current;
+      const byId = byIdRef.current;
+
+      // Expire the boss message (state — runs every tick, cheap).
+      let boss = bossRef.current;
+      if (boss && boss.shownAt === 0) boss.shownAt = now;
+      if (boss && (now - boss.shownAt > BOSS_MSG_MS || !byId.has(boss.targetId))) {
+        bossRef.current = null;
+        boss = null;
+      }
+
+      // Full frame rate only while something actually moves (running typing/glow,
+      // a desk popping in, the boss beam, or a sleeping "zzz"); otherwise idle at a
+      // few fps — enough for the clock — to spare CPU + battery.
+      let animating = boss !== null;
+      const nowSecs = Date.now() / 1000;
+      for (const [id, w] of workers) {
+        const s = byId.get(id);
+        if (!s) continue;
+        if (
+          s.state === "running" ||
+          now - w.appearAt < 470 ||
+          (s.state === "idle" && nowSecs - (s.lastActivityUnix ?? 0) > 300)
+        ) {
+          animating = true;
+          break;
+        }
+      }
+      if (now - lastDraw < (animating ? 40 : 220)) return;
+      const dt = Math.min(0.05, (now - lastDraw) / 1000);
+      lastDraw = now;
 
       const dpr = window.devicePixelRatio || 1;
       const W = canvas.clientWidth;
@@ -123,37 +179,6 @@ export default function IsoOffice({ sessions, selected, onSelect }: Props) {
       ctx.clearRect(0, 0, W, H);
 
       drawDecor(ctx, W);
-
-      // Sync workers <-> sessions, keeping desks stable.
-      const workers = workersRef.current;
-      const used = usedSlotsRef.current;
-      const ids = new Set(sessionsRef.current.map((s) => s.id));
-      for (const [id, w] of [...workers]) {
-        if (!ids.has(id)) {
-          used.delete(w.slot);
-          workers.delete(id);
-        }
-      }
-      for (const s of sessionsRef.current) {
-        if (!workers.has(s.id)) {
-          let slot = 0;
-          while (used.has(slot)) slot++;
-          used.add(slot);
-          workers.set(s.id, { slot, appearAt: now, phase: Math.random() * 6 });
-        }
-      }
-
-      const byId = new Map(sessionsRef.current.map((s) => [s.id, s]));
-
-      // Expire / validate the boss message.
-      let boss = bossRef.current;
-      if (boss) {
-        if (boss.shownAt === 0) boss.shownAt = now;
-        if (now - boss.shownAt > BOSS_MSG_MS || !byId.has(boss.targetId)) {
-          bossRef.current = null;
-          boss = null;
-        }
-      }
 
       const lay = layoutRef.current;
       const summonId = boss?.targetId ?? null;
@@ -182,8 +207,6 @@ export default function IsoOffice({ sessions, selected, onSelect }: Props) {
         const ts = byId.get(boss.targetId);
         if (ts) drawBossBubble(ctx, ts, boss.text, bossX, W);
       }
-
-      raf = requestAnimationFrame(draw);
     };
 
     raf = requestAnimationFrame(draw);

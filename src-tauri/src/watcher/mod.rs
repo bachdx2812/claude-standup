@@ -19,6 +19,17 @@ use tailer::Tailer;
 /// Their `mtimes` entry is kept, so a real new append resurrects them.
 const EVICT_SECS: i64 = 24 * 3600;
 
+/// Re-walk the projects dir at most this often; between walks the cached file
+/// list is re-stat'd for changes (cheap) rather than re-walked + re-allocated.
+const REWALK: Duration = Duration::from_secs(5);
+
+/// Cached `discovery::discover()` result so the full directory walk + its
+/// per-file allocations run at most every `REWALK`, not on every poll/poke.
+struct DiscoverCache {
+    files: Vec<SessionFile>,
+    last: std::time::Instant,
+}
+
 /// Spawn the watcher on Tauri's async runtime (tokio-backed). NOT `tokio::spawn`
 /// — `setup` runs on the main thread with no ambient tokio reactor.
 pub fn spawn(app: tauri::AppHandle, state: AppState) {
@@ -36,6 +47,12 @@ async fn run(app: tauri::AppHandle, state: AppState) {
     // Per-session last-seen mtime (liveness filter), kept OUTSIDE the registry
     // lock so the changed-file check needs no lock.
     let mut mtimes: HashMap<String, i64> = HashMap::new();
+    let mut disco = DiscoverCache {
+        files: Vec::new(),
+        last: std::time::Instant::now()
+            .checked_sub(REWALK)
+            .unwrap_or_else(std::time::Instant::now),
+    };
     let mut interval = tokio::time::interval(Duration::from_millis(1000));
     // Throttle UI emits; init in the past so the first change emits immediately.
     let mut last_emit = std::time::Instant::now()
@@ -47,7 +64,7 @@ async fn run(app: tauri::AppHandle, state: AppState) {
             _ = interval.tick() => {}
             _ = poke_rx.recv() => {}
         }
-        let result = scan_once(&state, &mut tailer, &mut mtimes).await;
+        let result = scan_once(&state, &mut tailer, &mut mtimes, &mut disco).await;
 
         crate::bridge::tray::update_count(&app, result.active_count);
 
@@ -89,6 +106,7 @@ async fn scan_once(
     state: &AppState,
     tailer: &mut Tailer,
     mtimes: &mut HashMap<String, i64>,
+    disco: &mut DiscoverCache,
 ) -> ScanResult {
     use crate::model::SessionState;
 
@@ -99,9 +117,16 @@ async fn scan_once(
     }
 
     // --- Phase 1: file IO outside the lock. ---
+    // Re-walk the projects dir only occasionally; otherwise re-stat the cache.
+    if disco.files.is_empty() || disco.last.elapsed() >= REWALK {
+        disco.files = discovery::discover();
+        disco.last = std::time::Instant::now();
+    }
     let mut ingests: Vec<Ingest> = Vec::new();
-    for sf in discovery::discover() {
-        let mtime = discovery::mtime_millis(&sf.path).unwrap_or(0);
+    for sf in &disco.files {
+        let Some(mtime) = discovery::mtime_millis(&sf.path) else {
+            continue; // transient stat failure — leave the stored mtime intact
+        };
         if mtimes.get(&sf.session_id) == Some(&mtime) {
             continue; // unchanged since last sight
         }
@@ -110,7 +135,7 @@ async fn scan_once(
         let raw = tailer.read_new_lines(&sf.path).unwrap_or_default();
         let lines: Vec<RawLine> = raw.iter().filter_map(|l| parse_line(l)).collect();
         let subagent_count = discovery::subagent_count(&sf.path, &sf.session_id);
-        ingests.push(Ingest { sf, lines, subagent_count });
+        ingests.push(Ingest { sf: sf.clone(), lines, subagent_count });
     }
 
     // --- Phase 2: short write lock — mutate registry, recompute (no IO). ---
