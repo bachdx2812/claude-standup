@@ -6,6 +6,23 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-06-04
+
+### Added
+
+- **Fun office** — the office is livelier while you work:
+  - Each desk lamp is the session's **status light** (green = running, amber =
+    waiting on you, grey = idle) with a coloured glow pool; the room dims after 7pm.
+  - **Poke an agent** (click) and it pops a witty one-liner in its bubble.
+  - **Konami code** (↑↑↓↓←→←→ B A) triggers an 8-second disco party.
+
+### Changed
+
+- **Clearer workers** — redrawn over-the-shoulder with lit dual monitors, bigger
+  and higher-contrast. Dropped the office header text, the boss-assignment floor
+  oval, the cryptic "+N" subagent suffix, and the raised-hand cue. Empty status
+  now reads "Processing".
+
 ## [1.2.0] - 2026-06-04
 
 ### Added
