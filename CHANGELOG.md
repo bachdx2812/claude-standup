@@ -6,6 +6,26 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-06-05
+
+### Added
+
+- **Reactions** — the office reacts to what your agents do:
+  - **Confetti** bursts over a desk the moment a session lands a new key
+    decision (commit, PR, file write, …).
+  - **Sweat** drops appear on a worker when its context window is ≥90% full.
+- **Progression** — lightweight, local-only gamification (pure flavour, never
+  affects monitoring):
+  - Per-project **XP + seniority levels** (Junior → Mid → Senior → Staff →
+    Principal) earned from key decisions, shown as `Lv N` on session cards.
+  - **Daily-use streak** chip (🔥) in the header.
+  - **"Employee of the day"** crown (👑) on the highest-spend session.
+
+### Changed
+
+- Panel entrances animate in (reduced-motion respected); the identity panel
+  re-fades when you switch agents.
+
 ## [1.3.0] - 2026-06-04
 
 ### Added
