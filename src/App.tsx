@@ -6,7 +6,7 @@ import DecisionTimeline from "./components/DecisionTimeline";
 import SessionSummary from "./components/SessionSummary";
 import SessionDetail from "./components/SessionDetail";
 import { fetchSessions, onBlockUpdate, onSessionsUpdate } from "./lib/tauri-events";
-import type { BillingBlock } from "./lib/types";
+import type { BillingBlock, SessionSnapshot } from "./lib/types";
 import { useSessions } from "./store/sessions-store";
 import { useLang } from "./store/lang-store";
 import { contextPct, nowSec } from "./lib/format";
@@ -125,9 +125,10 @@ export default function App() {
   const visible = sessions
     .filter((s) => (s.lastActivityUnix ?? 0) >= cutoff)
     .sort((a, b) => (b.lastActivityUnix ?? 0) - (a.lastActivityUnix ?? 0));
-  const running = visible.filter((s) => s.state === "running").length;
   const needsSessions = visible.filter((s) => s.state === "needsInput");
-  const restSessions = visible.filter((s) => s.state !== "needsInput");
+  const runningSessions = visible.filter((s) => s.state === "running");
+  const idleSessions = visible.filter((s) => s.state === "idle");
+  const running = runningSessions.length;
   const needs = needsSessions.length;
   // Overall Claude usage = Σ cost across visible sessions, + the busiest window.
   const totalCost = visible.reduce((a, s) => a + (s.costUsd || 0), 0);
@@ -143,6 +144,31 @@ export default function App() {
     (best, s) => ((s.costUsd || 0) > best.cost ? { id: s.id, cost: s.costUsd || 0 } : best),
     { id: null, cost: 0 },
   ).id;
+
+  // One titled rail section per state group; renders nothing when the group is empty.
+  const railSection = (
+    label: string,
+    list: SessionSnapshot[],
+    headClass = "",
+    cardsClass = "",
+  ) =>
+    list.length > 0 ? (
+      <>
+        <div className={`rail-head ${headClass}`.trim()}>{label}</div>
+        <div className={`rail-cards ${cardsClass}`.trim()}>
+          {list.map((s) => (
+            <SessionCard
+              key={s.id}
+              s={s}
+              compact
+              selected={s.id === selected}
+              top={s.id === topId}
+              onSelect={() => setSelected(s.id)}
+            />
+          ))}
+        </div>
+      </>
+    ) : null;
 
   return (
     <div className="app-shell">
@@ -163,44 +189,15 @@ export default function App() {
           {/* Top row: sessions list + office. */}
           <div className="app-main">
             <aside className="left-rail">
-              {needsSessions.length > 0 && (
-                <>
-                  <div className="rail-head needs">
-                    🔔 {t("needsYou")} · {needsSessions.length}
-                  </div>
-                  <div className="rail-cards needs-cards">
-                    {needsSessions.map((s) => (
-                      <SessionCard
-                        key={s.id}
-                        s={s}
-                        compact
-                        selected={s.id === selected}
-                        top={s.id === topId}
-                        onSelect={() => setSelected(s.id)}
-                      />
-                    ))}
-                  </div>
-                </>
+              {railSection(
+                `🔔 ${t("needsYou")} · ${needsSessions.length}`,
+                needsSessions,
+                "needs",
+                "needs-cards",
               )}
-              <div className="rail-head">
-                {t("sessions")} · {restSessions.length}
-              </div>
-              {restSessions.length === 0 ? (
-                <div className="rail-empty muted">{t("noneActive")}</div>
-              ) : (
-                <div className="rail-cards">
-                  {restSessions.map((s) => (
-                    <SessionCard
-                      key={s.id}
-                      s={s}
-                      compact
-                      selected={s.id === selected}
-                      top={s.id === topId}
-                      onSelect={() => setSelected(s.id)}
-                    />
-                  ))}
-                </div>
-              )}
+              {railSection(`${t("running")} · ${runningSessions.length}`, runningSessions)}
+              {railSection(`${t("idle")} · ${idleSessions.length}`, idleSessions)}
+              {visible.length === 0 && <div className="rail-empty muted">{t("noneActive")}</div>}
             </aside>
             <section className="office-stage">
               {visible.length === 0 ? (
