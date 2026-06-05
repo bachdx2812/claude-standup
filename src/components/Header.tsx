@@ -22,6 +22,8 @@ interface HeaderProps {
   todayCost: number;
   /** Current account-wide 5h billing block (null when none/inactive). */
   block: BillingBlock | null;
+  /** Open the shareable daily recap card. */
+  onOpenRecap: () => void;
 }
 
 export default function Header({
@@ -34,6 +36,7 @@ export default function Header({
   streak,
   todayCost,
   block,
+  onOpenRecap,
 }: HeaderProps) {
   const [autoPopup, setAuto] = useState(true);
   const [open, setOpen] = useState(false);
@@ -111,6 +114,9 @@ export default function Header({
           ⏳ {fmtDuration(block.resetsInSecs)} · {fmtTokensPerMin(block.burnTokensPerMin)}
         </span>
       )}
+      <button className="recap-btn" onClick={onOpenRecap} title="Daily recap card — shareable">
+        📸
+      </button>
       <button
         ref={gearRef}
         className="gear"

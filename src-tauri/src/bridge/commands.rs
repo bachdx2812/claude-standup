@@ -114,3 +114,20 @@ pub fn snooze_popups(minutes: i64, state: State<'_, AppState>) {
     let until = chrono::Utc::now().timestamp() + minutes.max(0) * 60;
     state.snooze_until.store(until, Relaxed);
 }
+
+/// Save recap-card PNG bytes to the user's Downloads folder; return the path.
+/// A browser `<a download>` is unreliable in WKWebView, so we persist natively.
+#[tauri::command]
+pub fn save_png(file_name: String, bytes: Vec<u8>) -> Result<String, String> {
+    let dir = dirs::download_dir()
+        .or_else(dirs::home_dir)
+        .ok_or_else(|| "No Downloads/home folder found".to_string())?;
+    // Keep only the basename + force .png, so a crafted name can't escape the dir.
+    let stem = std::path::Path::new(&file_name)
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("claude-standup");
+    let path = dir.join(format!("{stem}.png"));
+    std::fs::write(&path, &bytes).map_err(|e| format!("Failed to save: {e}"))?;
+    Ok(path.to_string_lossy().into_owned())
+}

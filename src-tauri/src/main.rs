@@ -43,6 +43,7 @@ fn main() {
             bridge::commands::set_auto_popup,
             bridge::commands::snooze_popups,
             bridge::commands::summarize_session,
+            bridge::commands::save_png,
         ])
         .setup(|app| {
             // Build the menubar tray (icon + Show/Quit menu + click-to-toggle).

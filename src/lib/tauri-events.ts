@@ -21,6 +21,10 @@ export const snoozePopups = (minutes: number): Promise<void> =>
 export const summarizeSession = (sessionId: string): Promise<string> =>
   invoke<string>("summarize_session", { sessionId });
 
+/** Save recap PNG bytes natively (→ Downloads); returns the saved path. */
+export const saveRecapPng = (fileName: string, bytes: number[]): Promise<string> =>
+  invoke<string>("save_png", { fileName, bytes });
+
 /** Subscribe to live snapshot pushes from the Rust watcher. */
 export const onSessionsUpdate = (
   cb: (sessions: SessionSnapshot[]) => void,

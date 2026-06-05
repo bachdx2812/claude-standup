@@ -13,19 +13,20 @@ import { contextPct, nowSec } from "./lib/format";
 import { t } from "./lib/i18n";
 import { checkForUpdate } from "./lib/updater";
 import { addXp, tickStreak } from "./lib/progression";
-import { addSpend, todaySpend } from "./lib/daily-spend";
+import { getToday, recordToday } from "./lib/daily-stats";
+import RecapModal from "./components/RecapModal";
 
 export default function App() {
   const sessions = useSessions((s) => s.sessions);
   const setSessions = useSessions((s) => s.setSessions);
   const [selected, setSelected] = useState<string | null>(null);
   const [streak] = useState(() => tickStreak()); // daily streak, bumped once on load
-  const [todayCost, setTodayCost] = useState(() => todaySpend());
+  const [today, setToday] = useState(() => getToday());
   const [block, setBlock] = useState<BillingBlock | null>(null);
+  const [recapOpen, setRecapOpen] = useState(false);
   const prevDecisionsRef = useRef<Map<string, number>>(new Map());
-  const seededXpRef = useRef(false);
   const prevCostRef = useRef<Map<string, number>>(new Map());
-  const seededCostRef = useRef(false);
+  const seededRef = useRef(false);
   useLang((s) => s.lang); // re-render the chrome when the language changes
   const [windowHours, setWindowHours] = useState(() => {
     const v = Number(localStorage.getItem("cm.windowHours"));
@@ -81,35 +82,39 @@ export default function App() {
     return () => clearTimeout(id);
   }, []);
 
-  // Award per-project XP when a session lands new key decisions. Seed silently
-  // on the first pass so existing history doesn't all count at once.
+  // Per-session deltas drive XP + today's tallies (spend, decisions, sessions
+  // seen). Seed silently on the first pass so lifetime history doesn't all land
+  // at once.
   useEffect(() => {
-    const prev = prevDecisionsRef.current;
-    const seeded = seededXpRef.current;
+    const prevD = prevDecisionsRef.current;
+    const prevC = prevCostRef.current;
+    const seeded = seededRef.current;
+    let dSpend = 0;
+    let dDec = 0;
+    const touched: string[] = [];
     for (const s of sessions) {
-      const old = prev.get(s.id);
-      if (seeded && old !== undefined && s.decisionCount > old) {
-        addXp(s.projectPath, s.decisionCount - old);
-      }
-      prev.set(s.id, s.decisionCount);
-    }
-    seededXpRef.current = true;
-  }, [sessions]);
-
-  // Accumulate USD spent today from positive per-session cost deltas. Seed
-  // silently on the first pass so lifetime cost doesn't all land at once.
-  useEffect(() => {
-    const prev = prevCostRef.current;
-    const seeded = seededCostRef.current;
-    let added = 0;
-    for (const s of sessions) {
-      const old = prev.get(s.id);
+      const oldD = prevD.get(s.id);
+      const oldC = prevC.get(s.id);
       const cost = s.costUsd || 0;
-      if (seeded && old !== undefined && cost > old) added += cost - old;
-      prev.set(s.id, cost);
+      if (seeded) {
+        if (oldD !== undefined && s.decisionCount > oldD) {
+          const inc = s.decisionCount - oldD;
+          addXp(s.projectPath, inc);
+          dDec += inc;
+          touched.push(s.id);
+        }
+        if (oldC !== undefined && cost > oldC) {
+          dSpend += cost - oldC;
+          touched.push(s.id);
+        }
+      }
+      prevD.set(s.id, s.decisionCount);
+      prevC.set(s.id, cost);
     }
-    if (added > 0) setTodayCost(addSpend(added));
-    seededCostRef.current = true;
+    if (dSpend > 0 || dDec > 0) {
+      setToday(recordToday({ spend: dSpend, decisions: dDec, sessionIds: touched }));
+    }
+    seededRef.current = true;
   }, [sessions]);
 
   // Show every real session (backend already drops stubs/temp). Sorted by the
@@ -149,8 +154,9 @@ export default function App() {
         totalCost={totalCost}
         maxContextPct={maxContextPct}
         streak={streak}
-        todayCost={todayCost}
+        todayCost={today.spend}
         block={block}
+        onOpenRecap={() => setRecapOpen(true)}
       />
       <div className="app-body">
         <div className="main-col">
@@ -224,6 +230,12 @@ export default function App() {
           </aside>
         )}
       </div>
+      <RecapModal
+        open={recapOpen}
+        sessions={sessions}
+        streak={streak}
+        onClose={() => setRecapOpen(false)}
+      />
     </div>
   );
 }

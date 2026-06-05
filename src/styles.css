@@ -137,6 +137,72 @@ body {
 .gear:hover {
   color: var(--text);
 }
+.recap-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 2px 7px;
+  font-size: 13px;
+}
+.recap-btn:hover {
+  color: var(--text);
+  border-color: rgba(52, 211, 153, 0.5);
+}
+
+/* Shareable daily recap card (modal over the whole app). */
+.recap-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(6, 9, 14, 0.72);
+  backdrop-filter: blur(3px);
+}
+.recap-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 18px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+.recap-canvas {
+  border-radius: 10px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+}
+.recap-actions {
+  display: flex;
+  gap: 8px;
+}
+.recap-actions button {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 7px;
+  padding: 7px 14px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.recap-actions button:hover {
+  border-color: rgba(52, 211, 153, 0.5);
+  color: #34d399;
+}
+.recap-actions .recap-close:hover {
+  border-color: var(--border);
+  color: var(--muted);
+}
+.recap-status {
+  font-size: 11px;
+  color: var(--muted);
+  min-height: 14px;
+}
 .settings-pop {
   position: absolute;
   top: 42px;
