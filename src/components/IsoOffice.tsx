@@ -11,6 +11,7 @@ import {
   drawWorker,
   roundRect,
 } from "./office-draw";
+import { hatTierForLevel, levelOf } from "../lib/progression";
 import type { SessionSnapshot } from "../lib/types";
 
 // The office hero: each session is a pixel employee at a desk with a speech
@@ -285,6 +286,7 @@ export default function IsoOffice({ sessions, selected, onSelect }: Props) {
           id === selectedRef.current,
           id === summonId,
           quip,
+          hatTierForLevel(levelOf(s.projectPath)),
         );
       }
 

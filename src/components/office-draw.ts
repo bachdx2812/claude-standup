@@ -94,6 +94,7 @@ export function drawWorker(
   selected: boolean,
   summoned: boolean,
   quip?: string,
+  hatTier = 0,
 ) {
   const col = stateColor(s.state);
   const y = baseY - (1 - appear) * 14;
@@ -162,6 +163,9 @@ export function drawWorker(
   px(-8, -6, 1, 3, skin); // left ear
   px(7, -6, 1, 3, skin); // right ear
   px(-4, 1, 8, 2, skin); // nape of the neck
+
+  // Cosmetic hat, unlocked as the project levels up (pure flavour).
+  if (hatTier > 0) drawHat(ctx, x, y, hatTier);
 
   // "Waiting for you" cue: a bobbing, pulsing amber "!" badge floating up to the
   // right, well clear of the person + the workstation, only while waiting on you.
@@ -470,6 +474,38 @@ export function drawConfetti(ctx: CanvasRenderingContext2D, x: number, y: number
     ctx.fillRect(Math.round(px), Math.round(py), 3, 3);
   }
   ctx.restore();
+}
+
+// A cosmetic hat on the worker's head, unlocked by the project's seniority:
+// 1 Mid = cap · 2 Senior = headphones · 3 Staff = grad cap · 4 Principal = crown.
+function drawHat(ctx: CanvasRenderingContext2D, x: number, y: number, tier: number) {
+  const px = (dx: number, dy: number, w: number, h: number, c: string) => {
+    ctx.fillStyle = c;
+    ctx.fillRect(Math.round(x + dx), Math.round(y + dy), w, h);
+  };
+  if (tier === 1) {
+    // Cap: dome + short brim.
+    px(-6, -15, 12, 3, "#3b82f6");
+    px(-9, -13, 4, 1, "#2563eb");
+  } else if (tier === 2) {
+    // Headphones: band + two earcups.
+    px(-7, -16, 14, 2, "#64748b");
+    px(-8, -14, 2, 5, "#22d3ee");
+    px(6, -14, 2, 5, "#22d3ee");
+  } else if (tier === 3) {
+    // Graduation cap: mortarboard + tassel.
+    px(-8, -14, 16, 2, "#1f2937");
+    px(-2, -16, 4, 2, "#1f2937");
+    px(6, -14, 1, 5, "#fbbf24");
+    px(5, -9, 2, 2, "#fbbf24");
+  } else {
+    // Crown: gold band + points + a little shine.
+    px(-6, -15, 12, 3, "#f59e0b");
+    px(-6, -18, 2, 3, "#fbbf24");
+    px(-1, -19, 2, 4, "#fbbf24");
+    px(4, -18, 2, 3, "#fbbf24");
+    px(-5, -15, 9, 1, "#fde68a");
+  }
 }
 
 // Sweat drops by the head when the context window is nearly full (stress!).

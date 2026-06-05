@@ -4,6 +4,7 @@
 
 import type { RecapData } from "./recap-data";
 import { formatCost } from "./format";
+import { hatTierForLevel } from "./progression";
 import { drawBoss, drawWorker } from "../components/office-draw";
 
 export const RECAP_W = 440;
@@ -56,7 +57,7 @@ export function drawRecapCard(canvas: HTMLCanvasElement, data: RecapData): void 
 
   // Hero: employee of the day (a real pixel worker), else the boss.
   if (data.top) {
-    drawWorker(ctx, cx, 224, data.top.session, 0, 1, false, false);
+    drawWorker(ctx, cx, 224, data.top.session, 0, 1, false, false, undefined, hatTierForLevel(data.top.level));
   } else {
     drawBoss(ctx, cx, 214, 0, false);
   }

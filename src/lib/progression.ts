@@ -7,15 +7,22 @@ const STREAK_KEY = "cm.streak"; // { date: "YYYY-MM-DD", streak: number }
 
 type XpMap = Record<string, number>;
 
+// In-memory cache so per-frame level lookups (the office hats) don't re-parse
+// localStorage every draw. Kept in sync on every save.
+let xpCache: XpMap | null = null;
+
 function loadXp(): XpMap {
+  if (xpCache) return xpCache;
   try {
-    return JSON.parse(localStorage.getItem(XP_KEY) || "{}") as XpMap;
+    xpCache = JSON.parse(localStorage.getItem(XP_KEY) || "{}") as XpMap;
   } catch {
-    return {};
+    xpCache = {};
   }
+  return xpCache;
 }
 
 function saveXp(m: XpMap): void {
+  xpCache = m;
   try {
     localStorage.setItem(XP_KEY, JSON.stringify(m));
   } catch {
@@ -51,6 +58,17 @@ export function levelTitle(level: number): string {
   if (level >= 4) return "Senior";
   if (level >= 2) return "Mid";
   return "Junior";
+}
+
+/** Cosmetic hat tier unlocked at a level (0 = none/Junior). Mirrors the title
+ *  tiers: 1 Mid (cap) · 2 Senior (headphones) · 3 Staff (grad cap) · 4 Principal
+ *  (crown). Pure flavour, drawn on the office worker. */
+export function hatTierForLevel(level: number): number {
+  if (level >= 9) return 4;
+  if (level >= 6) return 3;
+  if (level >= 4) return 2;
+  if (level >= 2) return 1;
+  return 0;
 }
 
 const dayStr = (ms: number): string => new Date(ms).toISOString().slice(0, 10);
