@@ -290,17 +290,17 @@ export default function IsoOffice({ sessions, selected, onSelect }: Props) {
 
       // Boss: beam (under), then figure, then the big speech bubble (on top).
       const bossX = W / 2;
-      if (boss) {
-        const tw = workers.get(boss.targetId);
-        if (tw) {
-          const tp = deskPos(tw.slot, W, lay);
-          drawBeam(ctx, bossX, BOSS_BASE_Y - 8, tp.x, tp.y - 26, now);
-        }
+      const targetWorker = boss ? workers.get(boss.targetId) : undefined;
+      if (boss && targetWorker) {
+        const tp = deskPos(targetWorker.slot, W, lay);
+        drawBeam(ctx, bossX, BOSS_BASE_Y - 8, tp.x, tp.y - 26, now);
       }
       drawBoss(ctx, bossX, BOSS_BASE_Y, now, !!boss);
       if (boss) {
         const ts = byId.get(boss.targetId);
-        if (ts) drawBossBubble(ctx, ts, boss.text, bossX, W);
+        // Bubble sits on the target's side so it agrees with the beam direction.
+        const targetX = targetWorker ? deskPos(targetWorker.slot, W, lay).x : bossX;
+        if (ts) drawBossBubble(ctx, ts, boss.text, bossX, W, targetX);
       }
 
       // Night dim, then the desk-lamp glows — each tinted by the session's state
@@ -421,20 +421,22 @@ function wrapText(
 }
 
 // The boss's big speech bubble: header (→ target folder) + the prompt wrapped
-// across several lines. Centered just under the boss, with a tail pointing up.
+// across several lines. Sits above the boss on the SAME side as the target desk
+// (so the bubble agrees with the beam), with a tail pointing to the boss's head.
 function drawBossBubble(
   ctx: CanvasRenderingContext2D,
   ts: SessionSnapshot,
   text: string,
   cx: number,
   W: number,
+  targetX: number,
 ) {
   const pad = 10;
   const lineH = 15;
   const bottom = BOSS_BASE_Y - 36; // bubble sits ABOVE the boss (comic style)
   const headY = BOSS_BASE_Y - 26; // tail points down to the boss's head
-  const left = cx + 10; // ...and up to the RIGHT of the speaker
-  const maxW = Math.min(W - left - 16, 520);
+  const onLeft = targetX < cx; // mirror to the side the boss is actually pointing
+  const maxW = Math.min((onLeft ? cx - 10 : W - cx - 10) - 16, 520);
   const maxLines = Math.max(2, Math.min(5, Math.floor((bottom - 26) / lineH)));
 
   ctx.font = "11px ui-monospace, monospace";
@@ -447,6 +449,7 @@ function drawBossBubble(
   const rows = 1 + promptLines.length;
   const h = rows * lineH + pad * 2 - 2;
   const top = bottom - h;
+  const left = onLeft ? cx - 10 - w : cx + 10;
 
   ctx.save();
   roundRect(ctx, left, top, w, h, 9);
@@ -459,11 +462,17 @@ function drawBossBubble(
   ctx.stroke();
   ctx.shadowBlur = 0;
 
-  // Comic tail: from the bubble's lower-left, down-left to the boss's head.
+  // Comic tail from the bubble's bottom edge nearest the boss, down to his head.
   ctx.beginPath();
-  ctx.moveTo(left + 10, bottom - 3);
-  ctx.lineTo(left + 24, bottom - 3);
-  ctx.lineTo(cx + 3, headY + 2);
+  if (onLeft) {
+    ctx.moveTo(left + w - 24, bottom - 3);
+    ctx.lineTo(left + w - 10, bottom - 3);
+    ctx.lineTo(cx - 3, headY + 2);
+  } else {
+    ctx.moveTo(left + 10, bottom - 3);
+    ctx.lineTo(left + 24, bottom - 3);
+    ctx.lineTo(cx + 3, headY + 2);
+  }
   ctx.closePath();
   ctx.fillStyle = "rgba(13,18,27,0.97)";
   ctx.fill();
