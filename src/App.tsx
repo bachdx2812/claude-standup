@@ -11,11 +11,15 @@ import { useLang } from "./store/lang-store";
 import { contextPct, nowSec } from "./lib/format";
 import { t } from "./lib/i18n";
 import { checkForUpdate } from "./lib/updater";
+import { addXp, tickStreak } from "./lib/progression";
 
 export default function App() {
   const sessions = useSessions((s) => s.sessions);
   const setSessions = useSessions((s) => s.setSessions);
   const [selected, setSelected] = useState<string | null>(null);
+  const [streak] = useState(() => tickStreak()); // daily streak, bumped once on load
+  const prevDecisionsRef = useRef<Map<string, number>>(new Map());
+  const seededXpRef = useRef(false);
   useLang((s) => s.lang); // re-render the chrome when the language changes
   const [windowHours, setWindowHours] = useState(() => {
     const v = Number(localStorage.getItem("cm.windowHours"));
@@ -69,6 +73,21 @@ export default function App() {
     return () => clearTimeout(id);
   }, []);
 
+  // Award per-project XP when a session lands new key decisions. Seed silently
+  // on the first pass so existing history doesn't all count at once.
+  useEffect(() => {
+    const prev = prevDecisionsRef.current;
+    const seeded = seededXpRef.current;
+    for (const s of sessions) {
+      const old = prev.get(s.id);
+      if (seeded && old !== undefined && s.decisionCount > old) {
+        addXp(s.projectPath, s.decisionCount - old);
+      }
+      prev.set(s.id, s.decisionCount);
+    }
+    seededXpRef.current = true;
+  }, [sessions]);
+
   // Show every real session (backend already drops stubs/temp). Sorted by the
   // backend: Running → Needs-Input → Idle, so active ones sit on top and nothing
   // ever drops off the board.
@@ -90,6 +109,11 @@ export default function App() {
   // Only while the checked session is still active (in view): hide the detail
   // footer + summary once it ages out or there are no sessions.
   const selectedSession = visible.find((s) => s.id === selected);
+  // "Employee of the day": the visible session with the highest spend.
+  const topId = visible.reduce<{ id: string | null; cost: number }>(
+    (best, s) => ((s.costUsd || 0) > best.cost ? { id: s.id, cost: s.costUsd || 0 } : best),
+    { id: null, cost: 0 },
+  ).id;
 
   return (
     <div className="app-shell">
@@ -100,6 +124,7 @@ export default function App() {
         onWindowChange={changeWindow}
         totalCost={totalCost}
         maxContextPct={maxContextPct}
+        streak={streak}
       />
       <div className="app-body">
         <div className="main-col">
@@ -118,6 +143,7 @@ export default function App() {
                         s={s}
                         compact
                         selected={s.id === selected}
+                        top={s.id === topId}
                         onSelect={() => setSelected(s.id)}
                       />
                     ))}
@@ -137,6 +163,7 @@ export default function App() {
                       s={s}
                       compact
                       selected={s.id === selected}
+                      top={s.id === topId}
                       onSelect={() => setSelected(s.id)}
                     />
                   ))}
@@ -159,7 +186,7 @@ export default function App() {
           {selectedSession && (
             <div className="detail-bar" ref={detailBarRef} style={{ height: footerH }}>
               <div className="detail-resizer" onMouseDown={startResize} title="Drag to resize" />
-              <SessionDetail session={selectedSession} />
+              <SessionDetail key={selectedSession.id} session={selectedSession} />
               <DecisionTimeline session={selectedSession} />
             </div>
           )}

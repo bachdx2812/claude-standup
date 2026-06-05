@@ -91,6 +91,10 @@ body {
   color: #fbbf24;
   border-color: rgba(251, 191, 36, 0.45);
 }
+.status-chip.streak {
+  color: #fb923c;
+  border-color: rgba(251, 146, 60, 0.45);
+}
 /* Only the first right-cluster item gets the auto-push. */
 .usage-pill + .status-chip,
 .status-chip + .status-chip {
@@ -213,6 +217,52 @@ body {
   flex-direction: column;
   min-height: 0;
   background: var(--panel-2);
+}
+
+/* Smooth entrances — panels rise/slide in when you click into an agent, the
+   stage fades in on first load. Gated so reduced-motion gets instant layout. */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes panel-rise {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes panel-slide-right {
+    from {
+      opacity: 0;
+      transform: translateX(20px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes stage-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  .office-stage {
+    animation: stage-fade 0.4s ease both;
+  }
+  .detail-bar {
+    animation: panel-rise 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .summary-col {
+    animation: panel-slide-right 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  /* Re-fade the left identity panel when you switch agents (keyed by id). */
+  .session-detail {
+    animation: stage-fade 0.22s ease both;
+  }
 }
 .app-empty {
   flex: 1;
@@ -420,6 +470,16 @@ body {
   gap: 8px;
   font-size: 11px;
   color: var(--muted);
+}
+/* Gamification bits on the rail cards. */
+.card-meta .lv {
+  color: #fbbf24;
+  font-weight: 600;
+}
+.crown {
+  flex: none;
+  font-size: 11px;
+  line-height: 1;
 }
 .card-sub {
   font-size: 10.5px;

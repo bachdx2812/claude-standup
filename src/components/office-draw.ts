@@ -185,6 +185,10 @@ export function drawWorker(
     ctx.restore();
   }
 
+  // Sweat when the context window is nearly full (stress).
+  const ctxPct = contextPct(s.contextUsedTokens, s.contextLimit);
+  if (ctxPct !== null && ctxPct >= 90) drawSweat(ctx, x, y, phase);
+
   if (s.state === "idle") {
     const afk = Date.now() / 1000 - (s.lastActivityUnix ?? 0);
     ctx.textAlign = "center";
@@ -446,6 +450,39 @@ export function drawDisco(ctx: CanvasRenderingContext2D, w: number, h: number, n
     ctx.globalAlpha = 0.85 * (1 - rise);
     ctx.fillStyle = `hsl(${(hue + i * 60) % 360}, 90%, 65%)`;
     ctx.fillText(i % 2 ? "♪" : "♫", x, y);
+  }
+  ctx.restore();
+}
+
+const CONFETTI = ["#34d399", "#fbbf24", "#60a5fa", "#f87171", "#c4b5fd", "#f0abfc"];
+
+// A celebratory confetti burst above a desk (t = 0..1 over the burst's life).
+export function drawConfetti(ctx: CanvasRenderingContext2D, x: number, y: number, t: number) {
+  ctx.save();
+  const n = 16;
+  for (let i = 0; i < n; i++) {
+    const ang = -Math.PI / 2 + (i / n - 0.5) * Math.PI * 1.4; // mostly-upward fan
+    const speed = 34 + (i % 5) * 9;
+    const px = x + Math.cos(ang) * speed * t;
+    const py = y + Math.sin(ang) * speed * t + 70 * t * t; // gravity
+    ctx.globalAlpha = Math.max(0, 1 - t);
+    ctx.fillStyle = CONFETTI[i % CONFETTI.length];
+    ctx.fillRect(Math.round(px), Math.round(py), 3, 3);
+  }
+  ctx.restore();
+}
+
+// Sweat drops by the head when the context window is nearly full (stress!).
+function drawSweat(ctx: CanvasRenderingContext2D, x: number, y: number, phase: number) {
+  ctx.save();
+  for (let i = 0; i < 2; i++) {
+    const drip = (((phase * 0.4 + i * 0.5) % 1) + 1) % 1;
+    const dx = i === 0 ? -10 : 11;
+    ctx.globalAlpha = 0.85 * (1 - drip * 0.5);
+    ctx.fillStyle = "#7dd3fc";
+    ctx.beginPath();
+    ctx.ellipse(x + dx, y - 8 + drip * 10, 1.6, 2.4, 0, 0, Math.PI * 2);
+    ctx.fill();
   }
   ctx.restore();
 }

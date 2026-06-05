@@ -3,6 +3,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import type { SessionSnapshot } from "../lib/types";
 import { projectFolder, projectName, stateColor, stateLabel, timeAgo } from "../lib/format";
+import { levelOf, levelTitle } from "../lib/progression";
 
 interface Props {
   s: SessionSnapshot;
@@ -10,9 +11,11 @@ interface Props {
   onSelect: () => void;
   /** Denser variant for the narrow right rail (the office is the hero now). */
   compact?: boolean;
+  /** Highest spend today → a crown. */
+  top?: boolean;
 }
 
-export default function SessionCard({ s, selected, onSelect, compact = false }: Props) {
+export default function SessionCard({ s, selected, onSelect, compact = false, top = false }: Props) {
   const ref = useRef<HTMLButtonElement>(null);
 
   // Entrance animation; CSS handles the per-state dot pulse.
@@ -24,6 +27,7 @@ export default function SessionCard({ s, selected, onSelect, compact = false }: 
   );
 
   const style = { "--state": stateColor(s.state) } as CSSProperties;
+  const level = levelOf(s.projectPath);
 
   return (
     <button
@@ -34,6 +38,11 @@ export default function SessionCard({ s, selected, onSelect, compact = false }: 
     >
       <div className="card-head">
         <span className={`dot ${s.state}`} />
+        {top && (
+          <span className="crown" title="Top spend today">
+            👑
+          </span>
+        )}
         <span className="card-title">{projectName(s)}</span>
         <span className="card-state" style={{ color: stateColor(s.state) }}>
           {stateLabel(s.state)}
@@ -55,6 +64,9 @@ export default function SessionCard({ s, selected, onSelect, compact = false }: 
             {s.decisionCount > 0 && <span>🧠 {s.decisionCount}</span>}
             {s.subagentCount > 0 && <span>🤖 {s.subagentCount}</span>}
             {s.branch && s.branch !== "HEAD" && <span>⑂ {s.branch}</span>}
+            <span className="lv" title={levelTitle(level)}>
+              Lv {level}
+            </span>
           </div>
           <div className="card-sub">{projectFolder(s)}</div>
         </>
@@ -64,6 +76,9 @@ export default function SessionCard({ s, selected, onSelect, compact = false }: 
           <span>{timeAgo(s.lastActivityUnix)}</span>
           {s.decisionCount > 0 && <span>🧠 {s.decisionCount}</span>}
           {s.subagentCount > 0 && <span>🤖 {s.subagentCount}</span>}
+          <span className="lv" title={levelTitle(level)}>
+            Lv {level}
+          </span>
         </div>
       )}
     </button>

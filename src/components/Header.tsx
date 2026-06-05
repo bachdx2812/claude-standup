@@ -15,6 +15,8 @@ interface HeaderProps {
   totalCost: number;
   /** Highest context-window usage % among visible sessions (null if none). */
   maxContextPct: number | null;
+  /** Daily-use streak (consecutive days). */
+  streak: number;
 }
 
 export default function Header({
@@ -24,6 +26,7 @@ export default function Header({
   onWindowChange,
   totalCost,
   maxContextPct,
+  streak,
 }: HeaderProps) {
   const [autoPopup, setAuto] = useState(true);
   const [open, setOpen] = useState(false);
@@ -79,6 +82,11 @@ export default function Header({
       {needs > 0 && (
         <span className="status-chip needs">
           🔔 {needs} {t("needYou")}
+        </span>
+      )}
+      {streak >= 2 && (
+        <span className="status-chip streak" title={`${streak}-day streak`}>
+          🔥 {streak}
         </span>
       )}
       <button

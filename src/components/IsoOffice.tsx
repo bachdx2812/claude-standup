@@ -4,6 +4,7 @@ import {
   drawAmbientLight,
   drawBeam,
   drawBoss,
+  drawConfetti,
   drawDecor,
   drawDisco,
   drawLampGlow,
@@ -92,6 +93,10 @@ export default function IsoOffice({ sessions, selected, onSelect }: Props) {
   const partyRef = useRef(0);
   // Transient quip bubbles per session id (poke an agent → it talks).
   const quipsRef = useRef<Map<string, { text: string; until: number }>>(new Map());
+  // Confetti bursts (id → start ms) when a session lands a new key decision.
+  const celebrationsRef = useRef<Map<string, number>>(new Map());
+  const prevDecisionsRef = useRef<Map<string, number>>(new Map());
+  const seededDecisionsRef = useRef(false);
 
   const [wrapW, setWrapW] = useState(0);
   const [wrapH, setWrapH] = useState(0);
@@ -114,6 +119,24 @@ export default function IsoOffice({ sessions, selected, onSelect }: Props) {
       if (!sessions.some((s) => s.id === id)) prev.delete(id);
     }
     seededRef.current = true;
+  }, [sessions]);
+
+  // Confetti when a session lands a NEW key decision (commit / PR / file / …).
+  // Seed silently on the first pass so existing history doesn't all pop at once.
+  useEffect(() => {
+    const prev = prevDecisionsRef.current;
+    const seeded = seededDecisionsRef.current;
+    for (const s of sessions) {
+      const old = prev.get(s.id);
+      if (seeded && old !== undefined && s.decisionCount > old) {
+        celebrationsRef.current.set(s.id, performance.now());
+      }
+      prev.set(s.id, s.decisionCount);
+    }
+    for (const id of [...prev.keys()]) {
+      if (!sessions.some((s) => s.id === id)) prev.delete(id);
+    }
+    seededDecisionsRef.current = true;
   }, [sessions]);
 
   // Reconcile desks (one Worker per session) + the id→snapshot map ONLY when the
@@ -199,7 +222,11 @@ export default function IsoOffice({ sessions, selected, onSelect }: Props) {
       // Full frame rate only while something actually moves (running typing/glow,
       // a desk popping in, the boss beam, or a sleeping "zzz"); otherwise idle at a
       // few fps — enough for the clock — to spare CPU + battery.
-      let animating = boss !== null || partyRef.current > now || quipsRef.current.size > 0;
+      let animating =
+        boss !== null ||
+        partyRef.current > now ||
+        quipsRef.current.size > 0 ||
+        celebrationsRef.current.size > 0;
       const nowSecs = Date.now() / 1000;
       for (const [id, w] of workers) {
         const s = byId.get(id);
@@ -280,6 +307,18 @@ export default function IsoOffice({ sessions, selected, onSelect }: Props) {
         if (!gs) continue;
         const gp = deskPos(gw.slot, W, lay);
         drawLampGlow(ctx, gp.x, gp.y, stateColor(gs.state));
+      }
+      // Confetti bursts when a session just landed a key decision.
+      for (const [cid, start] of celebrationsRef.current) {
+        const ct = (now - start) / 1200;
+        if (ct >= 1 || !byId.has(cid)) {
+          celebrationsRef.current.delete(cid);
+          continue;
+        }
+        const cw = workers.get(cid);
+        if (!cw) continue;
+        const cp = deskPos(cw.slot, W, lay);
+        drawConfetti(ctx, cp.x, cp.y - 34, ct);
       }
       if (partyRef.current > now) drawDisco(ctx, W, H, now);
     };
