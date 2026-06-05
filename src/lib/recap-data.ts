@@ -3,6 +3,7 @@
 // Pure derivation — no new tracking. Drives recap-draw.ts.
 
 import type { SessionSnapshot } from "./types";
+import { type Achievement, earnedAchievements } from "./achievements";
 import { getToday } from "./daily-stats";
 import { contextPct, projectName } from "./format";
 import { levelOf, levelTitle } from "./progression";
@@ -16,6 +17,7 @@ export interface RecapData {
   /** Employee of the day = the highest-spend session (the canvas hero). */
   top?: { name: string; level: number; title: string; session: SessionSnapshot };
   persona: { label: string; emoji: string };
+  badges: Achievement[];
 }
 
 /** Pick a playful "team vibe" from today's mix (first match wins). */
@@ -64,5 +66,6 @@ export function buildRecap(sessions: SessionSnapshot[], streak: number): RecapDa
     streak,
     top,
     persona: persona(stats.spend, stats.decisions, stats.sessions.length, peakCtx),
+    badges: earnedAchievements(),
   };
 }

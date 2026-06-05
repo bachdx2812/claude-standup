@@ -5,6 +5,7 @@ import type { BillingBlock } from "../lib/types";
 import { t, type Lang } from "../lib/i18n";
 import { useLang } from "../store/lang-store";
 import { checkForUpdate, type UpdateStatus } from "../lib/updater";
+import { seasonalAccent } from "../lib/seasonal";
 import { getVersion } from "@tauri-apps/api/app";
 
 interface HeaderProps {
@@ -71,6 +72,7 @@ export default function Header({
     setAutoPopup(next).catch(() => {});
   };
 
+  const season = seasonalAccent();
   return (
     <header className="app-header">
       <span className="brand-dot" />
@@ -112,6 +114,11 @@ export default function Header({
           ).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · Claude Code activity only (no plan limit)`}
         >
           ⏳ {fmtDuration(block.resetsInSecs)} · {fmtTokensPerMin(block.burnTokensPerMin)}
+        </span>
+      )}
+      {season && (
+        <span className="status-chip season" title={season.label}>
+          {season.emoji}
         </span>
       )}
       <button className="recap-btn" onClick={onOpenRecap} title="Daily recap card — shareable">

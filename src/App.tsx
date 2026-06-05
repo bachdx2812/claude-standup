@@ -12,8 +12,9 @@ import { useLang } from "./store/lang-store";
 import { contextPct, nowSec } from "./lib/format";
 import { t } from "./lib/i18n";
 import { checkForUpdate } from "./lib/updater";
-import { addXp, tickStreak } from "./lib/progression";
+import { addXp, levelOf, tickStreak } from "./lib/progression";
 import { getToday, recordToday } from "./lib/daily-stats";
+import { type Achievement, checkAchievements } from "./lib/achievements";
 import RecapModal from "./components/RecapModal";
 
 export default function App() {
@@ -24,6 +25,7 @@ export default function App() {
   const [today, setToday] = useState(() => getToday());
   const [block, setBlock] = useState<BillingBlock | null>(null);
   const [recapOpen, setRecapOpen] = useState(false);
+  const [achievement, setAchievement] = useState<Achievement | null>(null);
   const prevDecisionsRef = useRef<Map<string, number>>(new Map());
   const prevCostRef = useRef<Map<string, number>>(new Map());
   const seededRef = useRef(false);
@@ -116,6 +118,25 @@ export default function App() {
     }
     seededRef.current = true;
   }, [sessions]);
+
+  // Unlock achievements from the live stats; surface the newest as a toast.
+  useEffect(() => {
+    const maxLevel = sessions.reduce((m, s) => Math.max(m, levelOf(s.projectPath)), 0);
+    const { newly } = checkAchievements({
+      streak,
+      spend: today.spend,
+      decisions: today.decisions,
+      sessionCount: today.sessions.length,
+      maxLevel,
+    });
+    if (newly.length) setAchievement(newly[newly.length - 1]);
+  }, [sessions, streak, today]);
+
+  useEffect(() => {
+    if (!achievement) return;
+    const id = setTimeout(() => setAchievement(null), 4500);
+    return () => clearTimeout(id);
+  }, [achievement]);
 
   // Show every real session (backend already drops stubs/temp). Sorted by the
   // backend: Running → Needs-Input → Idle, so active ones sit on top and nothing
@@ -233,6 +254,11 @@ export default function App() {
         streak={streak}
         onClose={() => setRecapOpen(false)}
       />
+      {achievement && (
+        <div className="achievement-toast">
+          🏆 Unlocked: {achievement.emoji} {achievement.label}
+        </div>
+      )}
     </div>
   );
 }

@@ -3,6 +3,7 @@
 // is a real pixel employee. No new deps: the canvas exports straight to PNG.
 
 import type { RecapData } from "./recap-data";
+import { ACHIEVEMENT_COUNT } from "./achievements";
 import { formatCost } from "./format";
 import { hatTierForLevel } from "./progression";
 import { drawBoss, drawWorker } from "../components/office-draw";
@@ -90,8 +91,18 @@ export function drawRecapCard(canvas: HTMLCanvasElement, data: RecapData): void 
     y += 34;
   }
 
-  // Employee of the day caption.
+  // Earned achievement badges.
   ctx.textAlign = "center";
+  if (data.badges.length > 0) {
+    ctx.font = "15px ui-monospace, monospace";
+    ctx.fillStyle = "#e8edf4";
+    ctx.fillText(data.badges.map((b) => b.emoji).join("   "), cx, 500);
+    ctx.fillStyle = "rgba(148,163,184,0.7)";
+    ctx.font = "9px ui-monospace, monospace";
+    ctx.fillText(`${data.badges.length}/${ACHIEVEMENT_COUNT} badges`, cx, 514);
+  }
+
+  // Employee of the day caption.
   if (data.top) {
     ctx.fillStyle = "#fbbf24";
     ctx.font = "bold 13px ui-monospace, monospace";
