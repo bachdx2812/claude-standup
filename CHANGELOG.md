@@ -6,6 +6,20 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-06-05
+
+### Added
+
+- **Spent today** — a `$X today` pill in the header tracks Claude spend since
+  midnight (delta-tracked locally; resets each day). More actionable than the
+  lifetime total.
+- **Stalled hint** — a session that's *running but has produced no new output*
+  for 5+ minutes shows a `⏳ Nm` marker on its card and detail, so you can spot
+  a wedged tool before it quietly goes Idle.
+- **Context `/compact` nudge** — once a session's context window passes 85%, its
+  context pill reads `NN% ctx · /compact?` with a tooltip, turning the number
+  into a prompt to act.
+
 ## [1.4.1] - 2026-06-05
 
 ### Fixed
