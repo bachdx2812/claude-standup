@@ -131,6 +131,13 @@ export function drawWorker(
   px(-22, -30, 8, 1, "#6c91c4");
   px(4, -33, 12, 1, col);
   px(4, -30, 8, 1, "#6c91c4");
+  // Running = a "live typing" line whose width marches with phase (looks like
+  // code being written). Additive; only while running, which already animates.
+  if (s.state === "running") {
+    const tw = 3 + (Math.floor(phase * 2.5) % 9); // 3..11
+    px(-22, -27, tw, 1, "#9ec5ff");
+    px(4, -27, 13 - tw, 1, "#9ec5ff");
+  }
   px(-16, -23, 2, 2, "#2a313c"); // left stand
   px(10, -23, 2, 2, "#2a313c"); // right stand
 
@@ -156,16 +163,18 @@ export function drawWorker(
   px(-11, -21, 22, 3, "#1a1f28");
   for (let kx = -10; kx < 11; kx += 3) px(kx, -20, 2, 1, "#4a5468"); // keys
 
+  // A subtle nod while running = "in the zone": the head + hat bob; body stays.
+  const nod = s.state === "running" && Math.sin(phase * 1.4) > 0.6 ? -1 : 0;
   // Employee NEAREST us: clear back of head + shoulders (coloured shirt pops).
   px(-13, 1, 26, 7, col); // shoulders / upper back
-  px(-7, -11, 14, 13, hair); // back of head (big)
-  px(-6, -12, 12, 1, hair); // rounded crown
-  px(-8, -6, 1, 3, skin); // left ear
-  px(7, -6, 1, 3, skin); // right ear
+  px(-7, -11 + nod, 14, 13, hair); // back of head (big)
+  px(-6, -12 + nod, 12, 1, hair); // rounded crown
+  px(-8, -6 + nod, 1, 3, skin); // left ear
+  px(7, -6 + nod, 1, 3, skin); // right ear
   px(-4, 1, 8, 2, skin); // nape of the neck
 
   // Cosmetic hat, unlocked as the project levels up (pure flavour).
-  if (hatTier > 0) drawHat(ctx, x, y, hatTier);
+  if (hatTier > 0) drawHat(ctx, x, y + nod, hatTier);
 
   // "Waiting for you" cue: a bobbing, pulsing amber "!" badge floating up to the
   // right, well clear of the person + the workstation, only while waiting on you.
@@ -208,9 +217,13 @@ export function drawWorker(
       }
       ctx.globalAlpha = appear;
     } else {
-      ctx.fillStyle = "rgba(203,213,225,0.5)";
-      ctx.font = "9px ui-monospace, monospace";
-      ctx.fillText("z", x + 9, y - 15);
+      // Recently idle = a coffee break: a little mug by the head (static, so it
+      // reads fine even when the office idles at a low frame rate).
+      px(8, -10, 4, 4, "#d6deea"); // mug
+      px(12, -9, 1, 2, "#d6deea"); // handle
+      ctx.globalAlpha = appear * 0.4;
+      px(9, -13, 1, 2, "#cbd5e1"); // wisp of steam
+      ctx.globalAlpha = appear;
     }
   }
 
