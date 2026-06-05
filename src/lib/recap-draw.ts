@@ -23,8 +23,8 @@ export function drawRecapCard(canvas: HTMLCanvasElement, data: RecapData): void 
   const dpr = 2;
   canvas.width = RECAP_W * dpr;
   canvas.height = RECAP_H * dpr;
-  canvas.style.width = `${RECAP_W}px`;
-  canvas.style.height = `${RECAP_H}px`;
+  // Display size is left to CSS (responsive: scales down to fit small windows
+  // while preserving the 440×600 aspect ratio from the canvas's intrinsic dims).
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
   ctx.scale(dpr, dpr);
