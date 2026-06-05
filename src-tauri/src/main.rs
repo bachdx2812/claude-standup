@@ -59,6 +59,8 @@ fn main() {
             let app_state = app.state::<AppState>().inner().clone();
             // Load persisted settings onto the live state before anything reads them.
             settings::apply(settings::load(app.handle()), &app_state);
+            // Animated menubar pet: a tiny pixel worker reflecting live state.
+            bridge::tray_pet::spawn(app.handle().clone(), app_state.clone());
             watcher::spawn(app.handle().clone(), app_state);
 
             Ok(())

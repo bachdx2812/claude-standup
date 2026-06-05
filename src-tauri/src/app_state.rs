@@ -14,7 +14,7 @@ use crate::watcher::discovery::{self, SessionFile};
 use serde_json::Value;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicBool, AtomicI64};
+use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU32};
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
@@ -289,6 +289,9 @@ pub struct AppState {
     pub snooze_until: Arc<AtomicI64>,
     /// Unix seconds of the last popup — debounce against focus-steal spam.
     pub last_popup: Arc<AtomicI64>,
+    /// Live counts (running / needs-you) for the animated menubar pet.
+    pub active: Arc<AtomicU32>,
+    pub needs: Arc<AtomicU32>,
 }
 
 impl AppState {
@@ -298,6 +301,8 @@ impl AppState {
             auto_popup: Arc::new(AtomicBool::new(true)),
             snooze_until: Arc::new(AtomicI64::new(0)),
             last_popup: Arc::new(AtomicI64::new(0)),
+            active: Arc::new(AtomicU32::new(0)),
+            needs: Arc::new(AtomicU32::new(0)),
         }
     }
 }

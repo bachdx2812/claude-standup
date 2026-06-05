@@ -5,3 +5,4 @@ pub mod commands;
 pub mod events;
 pub mod popup;
 pub mod tray;
+pub mod tray_pet;

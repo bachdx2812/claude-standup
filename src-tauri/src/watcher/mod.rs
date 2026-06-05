@@ -76,6 +76,10 @@ async fn run(app: tauri::AppHandle, state: AppState) {
         let result = scan_once(&state, &mut tailer, &mut mtimes, &mut disco).await;
 
         crate::bridge::tray::update_count(&app, result.active_count, result.needs_count);
+        // Mirror counts for the animated menubar pet (read by its own loop).
+        use std::sync::atomic::Ordering::Relaxed;
+        state.active.store(result.active_count as u32, Relaxed);
+        state.needs.store(result.needs_count as u32, Relaxed);
 
         if result.changed && last_emit.elapsed() >= Duration::from_millis(250) {
             crate::bridge::events::emit_sessions(&app, &state).await;
