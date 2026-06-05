@@ -1,14 +1,15 @@
-// Auto-popup: surface the monitor window when a session becomes active.
-// Edge-triggered (only on not-active → active), debounced, and gated by the
-// user's auto-popup toggle + snooze so it never steals focus repeatedly.
+// Auto-popup: when a session becomes active, fire a notification — never steal
+// window focus or raise the window. Edge-triggered (only on not-active → active),
+// debounced, and gated by the user's auto-popup toggle + snooze. Clicking the
+// notification brings the app forward (OS default); we never grab focus ourselves.
 
 use crate::app_state::AppState;
 use crate::model::SessionSnapshot;
 use std::sync::atomic::Ordering::Relaxed;
-use tauri::{AppHandle, Manager};
+use tauri::AppHandle;
 use tauri_plugin_notification::NotificationExt;
 
-/// Minimum seconds between auto-popups (anti focus-steal).
+/// Minimum seconds between activation notifications (anti-spam).
 const POPUP_DEBOUNCE_SECS: i64 = 3;
 
 pub fn on_activations(app: &AppHandle, state: &AppState, activations: &[SessionSnapshot]) {
@@ -23,11 +24,6 @@ pub fn on_activations(app: &AppHandle, state: &AppState, activations: &[SessionS
         return;
     }
     state.last_popup.store(now, Relaxed);
-
-    if let Some(window) = app.get_webview_window("monitor") {
-        let _ = window.show();
-        let _ = window.set_focus();
-    }
 
     let body = match activations {
         [one] => format!("{} is active", label(one)),
