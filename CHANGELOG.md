@@ -6,6 +6,14 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.11.0] - 2026-06-05
+
+### Added
+
+- **Animated menubar pet** — a little pixel face lives in your menubar and
+  reflects the room at a glance: green while sessions are running, amber with a
+  red corner when one needs you, grey at rest. Pure flavour.
+
 ## [1.10.0] - 2026-06-05
 
 ### Added
