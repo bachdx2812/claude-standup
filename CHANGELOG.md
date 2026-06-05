@@ -6,6 +6,19 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-06-05
+
+### Added
+
+- **Worker moods** — the office feels more alive: a running employee gives a
+  subtle head nod and its monitors show a live "typing" line, while a recently
+  idle one sets down a coffee mug (the 5-minute `zzz` nap stays). Pure flavour.
+
+### Removed
+
+- The recap card's **Copy image** button — clipboard image copy doesn't work in
+  the desktop build. Use **Save .png** (writes to Downloads) or a screenshot.
+
 ## [1.8.0] - 2026-06-05
 
 ### Added
