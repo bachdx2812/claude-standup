@@ -6,6 +6,15 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-06-05
+
+### Added
+
+- **Cosmetic hats** — office workers (and the Recap hero) now wear a hat earned
+  from the project's seniority level: a cap at Mid, headphones at Senior, a
+  graduation cap at Staff, and a crown at Principal. Pure flavour — level a
+  project up to unlock the next one.
+
 ## [1.7.1] - 2026-06-05
 
 ### Fixed
