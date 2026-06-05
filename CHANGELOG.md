@@ -6,6 +6,13 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.11.1] - 2026-06-05
+
+### Fixed
+
+- The sessions rail no longer leaves big empty gaps between the Running and Idle
+  groups — every group is now content-height and the whole rail scrolls.
+
 ## [1.11.0] - 2026-06-05
 
 ### Added
