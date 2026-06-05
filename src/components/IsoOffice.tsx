@@ -422,7 +422,7 @@ function wrapText(
 
 // The boss's big speech bubble: header (→ target folder) + the prompt wrapped
 // across several lines. Sits above the boss on the SAME side as the target desk
-// (so the bubble agrees with the beam), with a tail pointing to the boss's head.
+// (so it agrees with the beam). No comic tail — the beam already shows the link.
 function drawBossBubble(
   ctx: CanvasRenderingContext2D,
   ts: SessionSnapshot,
@@ -434,7 +434,6 @@ function drawBossBubble(
   const pad = 10;
   const lineH = 15;
   const bottom = BOSS_BASE_Y - 36; // bubble sits ABOVE the boss (comic style)
-  const headY = BOSS_BASE_Y - 26; // tail points down to the boss's head
   const onLeft = targetX < cx; // mirror to the side the boss is actually pointing
   const maxW = Math.min((onLeft ? cx - 10 : W - cx - 10) - 16, 520);
   const maxLines = Math.max(2, Math.min(5, Math.floor((bottom - 26) / lineH)));
@@ -461,21 +460,6 @@ function drawBossBubble(
   ctx.shadowBlur = 10;
   ctx.stroke();
   ctx.shadowBlur = 0;
-
-  // Comic tail from the bubble's bottom edge nearest the boss, down to his head.
-  ctx.beginPath();
-  if (onLeft) {
-    ctx.moveTo(left + w - 24, bottom - 3);
-    ctx.lineTo(left + w - 10, bottom - 3);
-    ctx.lineTo(cx - 3, headY + 2);
-  } else {
-    ctx.moveTo(left + 10, bottom - 3);
-    ctx.lineTo(left + 24, bottom - 3);
-    ctx.lineTo(cx + 3, headY + 2);
-  }
-  ctx.closePath();
-  ctx.fillStyle = "rgba(13,18,27,0.97)";
-  ctx.fill();
 
   ctx.textAlign = "left";
   ctx.textBaseline = "top";
