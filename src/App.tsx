@@ -12,14 +12,18 @@ import { contextPct, nowSec } from "./lib/format";
 import { t } from "./lib/i18n";
 import { checkForUpdate } from "./lib/updater";
 import { addXp, tickStreak } from "./lib/progression";
+import { addSpend, todaySpend } from "./lib/daily-spend";
 
 export default function App() {
   const sessions = useSessions((s) => s.sessions);
   const setSessions = useSessions((s) => s.setSessions);
   const [selected, setSelected] = useState<string | null>(null);
   const [streak] = useState(() => tickStreak()); // daily streak, bumped once on load
+  const [todayCost, setTodayCost] = useState(() => todaySpend());
   const prevDecisionsRef = useRef<Map<string, number>>(new Map());
   const seededXpRef = useRef(false);
+  const prevCostRef = useRef<Map<string, number>>(new Map());
+  const seededCostRef = useRef(false);
   useLang((s) => s.lang); // re-render the chrome when the language changes
   const [windowHours, setWindowHours] = useState(() => {
     const v = Number(localStorage.getItem("cm.windowHours"));
@@ -88,6 +92,22 @@ export default function App() {
     seededXpRef.current = true;
   }, [sessions]);
 
+  // Accumulate USD spent today from positive per-session cost deltas. Seed
+  // silently on the first pass so lifetime cost doesn't all land at once.
+  useEffect(() => {
+    const prev = prevCostRef.current;
+    const seeded = seededCostRef.current;
+    let added = 0;
+    for (const s of sessions) {
+      const old = prev.get(s.id);
+      const cost = s.costUsd || 0;
+      if (seeded && old !== undefined && cost > old) added += cost - old;
+      prev.set(s.id, cost);
+    }
+    if (added > 0) setTodayCost(addSpend(added));
+    seededCostRef.current = true;
+  }, [sessions]);
+
   // Show every real session (backend already drops stubs/temp). Sorted by the
   // backend: Running → Needs-Input → Idle, so active ones sit on top and nothing
   // ever drops off the board.
@@ -125,6 +145,7 @@ export default function App() {
         totalCost={totalCost}
         maxContextPct={maxContextPct}
         streak={streak}
+        todayCost={todayCost}
       />
       <div className="app-body">
         <div className="main-col">

@@ -95,6 +95,10 @@ body {
   color: #fb923c;
   border-color: rgba(251, 146, 60, 0.45);
 }
+.status-chip.today {
+  color: #34d399;
+  border-color: rgba(52, 211, 153, 0.4);
+}
 /* Only the first right-cluster item gets the auto-push. */
 .usage-pill + .status-chip,
 .status-chip + .status-chip {
@@ -481,6 +485,11 @@ body {
   font-size: 11px;
   line-height: 1;
 }
+/* "Running but no new output" hint on a rail card. */
+.card-meta .stall {
+  color: #fbbf24;
+  font-weight: 600;
+}
 .card-sub {
   font-size: 10.5px;
   color: #5d6b80;
@@ -695,6 +704,10 @@ body {
 .pill-cost {
   color: #34d399;
   border-color: rgba(52, 211, 153, 0.35);
+}
+.pill-stalled {
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.35);
 }
 .pill-ctx {
   font-weight: 600;

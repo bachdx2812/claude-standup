@@ -35,6 +35,15 @@ export function projectFolder(s: SessionSnapshot): string {
   return parts[parts.length - 1] || s.projectPath;
 }
 
+/** Minutes a Running session has gone with no new output (≥5m), else null.
+ *  A non-alarming "working, nothing new" hint — surfaces a possibly-stuck tool
+ *  BEFORE the backend's 10-min tool cap flips it to Idle. */
+export function stalledMins(s: SessionSnapshot): number | null {
+  if (s.state !== "running" || !s.lastActivityUnix) return null;
+  const m = Math.floor((nowSec() - s.lastActivityUnix) / 60);
+  return m >= 5 ? m : null;
+}
+
 export function stateColor(state: SessionState): string {
   switch (state) {
     case "running":

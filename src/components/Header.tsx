@@ -17,6 +17,8 @@ interface HeaderProps {
   maxContextPct: number | null;
   /** Daily-use streak (consecutive days). */
   streak: number;
+  /** USD spent today across all sessions (delta-tracked). */
+  todayCost: number;
 }
 
 export default function Header({
@@ -27,6 +29,7 @@ export default function Header({
   totalCost,
   maxContextPct,
   streak,
+  todayCost,
 }: HeaderProps) {
   const [autoPopup, setAuto] = useState(true);
   const [open, setOpen] = useState(false);
@@ -87,6 +90,11 @@ export default function Header({
       {streak >= 2 && (
         <span className="status-chip streak" title={`${streak}-day streak`}>
           🔥 {streak}
+        </span>
+      )}
+      {todayCost > 0 && (
+        <span className="status-chip today" title="Claude spend today">
+          {formatCost(todayCost)} {t("today")}
         </span>
       )}
       <button

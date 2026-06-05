@@ -2,7 +2,7 @@ import { useRef, type CSSProperties } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import type { SessionSnapshot } from "../lib/types";
-import { projectFolder, projectName, stateColor, stateLabel, timeAgo } from "../lib/format";
+import { projectFolder, projectName, stalledMins, stateColor, stateLabel, timeAgo } from "../lib/format";
 import { levelOf, levelTitle } from "../lib/progression";
 
 interface Props {
@@ -28,6 +28,7 @@ export default function SessionCard({ s, selected, onSelect, compact = false, to
 
   const style = { "--state": stateColor(s.state) } as CSSProperties;
   const level = levelOf(s.projectPath);
+  const stalled = stalledMins(s);
 
   return (
     <button
@@ -61,6 +62,11 @@ export default function SessionCard({ s, selected, onSelect, compact = false, to
         <>
           <div className="card-meta">
             <span>{timeAgo(s.lastActivityUnix)}</span>
+            {stalled !== null && (
+              <span className="stall" title="Running, no new output for a while">
+                ⏳ {stalled}m
+              </span>
+            )}
             {s.decisionCount > 0 && <span>🧠 {s.decisionCount}</span>}
             {s.subagentCount > 0 && <span>🤖 {s.subagentCount}</span>}
             {s.branch && s.branch !== "HEAD" && <span>⑂ {s.branch}</span>}
