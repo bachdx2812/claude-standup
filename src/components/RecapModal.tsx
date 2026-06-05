@@ -33,18 +33,6 @@ export default function RecapModal({ open, sessions, streak, onClose }: Props) {
 
   if (!open) return null;
 
-  const copyImage = () => {
-    canvasRef.current?.toBlob(async (blob) => {
-      if (!blob) return;
-      try {
-        await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-        setStatus("Copied to clipboard!");
-      } catch {
-        setStatus("Couldn't copy — screenshot it (⌘⇧4)");
-      }
-    }, "image/png");
-  };
-
   const saveImage = () => {
     canvasRef.current?.toBlob(async (blob) => {
       if (!blob) return;
@@ -64,7 +52,6 @@ export default function RecapModal({ open, sessions, streak, onClose }: Props) {
       <div className="recap-modal" onClick={(e) => e.stopPropagation()}>
         <canvas ref={canvasRef} className="recap-canvas" />
         <div className="recap-actions">
-          <button onClick={copyImage}>Copy image</button>
           <button onClick={saveImage}>Save .png</button>
           <button className="recap-close" onClick={onClose}>
             Close
