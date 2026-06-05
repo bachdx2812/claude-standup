@@ -6,6 +6,27 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-06-05
+
+### Added
+
+- **StandUp Recap** — a 📸 button opens a shareable daily card (pixel-office
+  style): employee of the day, a "team vibe" persona, and today's spend, key
+  decisions, sessions, and streak. Copy image, Save .png (→ Downloads), or
+  just screenshot it.
+
+### Changed
+
+- Larger default window (1100×760), and the recap card scales to fit small
+  windows so its buttons stay on screen.
+- The sessions rail now splits into clear **Running** / **Idle** sections
+  (previously a single vague "Sessions" group that mixed both).
+
+### Fixed
+
+- Wider office row spacing so a desk's status bubble no longer overlaps the
+  cost/context labels of the row above it when the office is short.
+
 ## [1.6.0] - 2026-06-05
 
 ### Added
