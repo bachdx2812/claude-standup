@@ -6,6 +6,23 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-06-05
+
+### Added
+
+- **5-hour billing block** — a header pill shows the current Claude usage window:
+  time until it resets, spend so far, and the token burn rate. Derived locally
+  from your transcripts (Claude Code activity only; no plan-limit shown).
+
+### Changed
+
+- **Key Decisions are meaningful now** — the timeline shows real commit messages
+  (`committed: <msg>`) and only milestones (commits, PRs, plans, subagents,
+  skills, answered questions). Dropped the noise: every prompt and every
+  individual file write no longer flood the list.
+- **Office spacing** — desks sit a little lower so the checked desk's "CHECKING"
+  pill no longer crowds the boss at the top of the room.
+
 ## [1.5.0] - 2026-06-05
 
 ### Added
