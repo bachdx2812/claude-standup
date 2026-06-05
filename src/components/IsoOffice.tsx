@@ -26,8 +26,11 @@ const BOSS_BASE_Y = 110; // boss stands here, centered near the top
 const DESK_TOP = 236; // first desk row baseline — sits low enough that a checked
 // desk's "CHECKING" pill (drawn at deskY-82) clears the boss + its label below it.
 const BOT_PAD = 46;
-const MIN_GAP = 98; // tightest row spacing before we allow scrolling
-const MAX_GAP = 128;
+// Tightest row spacing before we scroll. A worker spans ~deskY-82 (CHECKING
+// pill) to deskY+42 (context HP bar), so rows closer than ~124 let the lower
+// row's status bubble collide with the upper row's cost/context labels.
+const MIN_GAP = 124;
+const MAX_GAP = 152;
 const BOSS_MSG_MS = 7000;
 const QUIP_MS = 3500;
 
