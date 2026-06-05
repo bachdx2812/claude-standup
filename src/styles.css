@@ -314,6 +314,7 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  overflow-y: auto; /* sections are content-height; the whole rail scrolls */
   background: var(--panel-2);
 }
 /* CENTER: the office stage fills the middle. */
@@ -415,8 +416,7 @@ body {
   background: var(--panel);
 }
 .rail-cards {
-  flex: 1;
-  overflow-y: auto;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   gap: 7px;
@@ -425,14 +425,10 @@ body {
 .rail-empty {
   padding: 12px;
 }
-/* Pinned "Needs you" group: amber header, content-height (not flex-grow) so it
-   sits at the top and the regular list below keeps the scroll. */
+/* "Needs you" group just gets the amber header; all groups are content-height
+   and the whole rail scrolls (see .left-rail). */
 .rail-head.needs {
   color: #fbbf24;
-}
-.rail-cards.needs-cards {
-  flex: 0 0 auto;
-  max-height: 38%;
 }
 .card-question {
   font-size: 11px;
