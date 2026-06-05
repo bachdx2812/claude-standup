@@ -93,6 +93,15 @@ impl Usage {
     pub fn context_used_tokens(&self) -> u64 {
         self.input_tokens + self.cache_creation_input_tokens + self.cache_read_input_tokens
     }
+
+    /// All tokens billed for this turn (input + output + cache read + write) —
+    /// the rate-limit "tokens" unit used for burn-rate over a billing block.
+    pub fn billable_tokens(&self) -> u64 {
+        self.input_tokens
+            + self.output_tokens
+            + self.cache_read_input_tokens
+            + self.cache_creation_input_tokens
+    }
 }
 
 fn u64_field(usage: &Value, key: &str) -> u64 {

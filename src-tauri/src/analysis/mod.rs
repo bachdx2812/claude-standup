@@ -6,6 +6,7 @@ pub mod decisions;
 pub mod pending_question;
 pub mod session_state;
 pub mod status_map;
+pub mod usage_blocks;
 
 /// Trim + truncate to `max` chars with an ellipsis.
 pub fn truncate(s: &str, max: usize) -> String {

@@ -8,7 +8,7 @@
 // `feed` is called once per ingested line; dedup by a stable `ref_id` keeps
 // re-tailing idempotent.
 
-use super::{basename, truncate};
+use super::truncate;
 use crate::model::{DecisionEvent, DecisionKind};
 use crate::transcript::content_block::{tool_result_ids, tool_uses};
 use crate::transcript::RawLine;
@@ -80,7 +80,8 @@ impl DecisionExtractor {
     }
 
     fn feed_user(&mut self, rl: &RawLine) {
-        // 1) AskUserQuestion answer (highest value).
+        // AskUserQuestion answers are the only user-side "decision" worth keeping
+        // (raw prompts are noise — you already know what you asked).
         if let Some(tur) = &rl.tool_use_result {
             if let Some(answers) = tur.get("answers").and_then(Value::as_object) {
                 let ids = rl.message.as_ref().map(tool_result_ids).unwrap_or_default();
@@ -114,29 +115,6 @@ impl DecisionExtractor {
                 // Answered → drop the pending entries so the map stays bounded.
                 for id in &ids {
                     self.pending_questions.remove(*id);
-                }
-            }
-        }
-
-        // 2) Genuine user prompt: bare string content, not an injected meta line.
-        if rl.is_meta != Some(true) {
-            if let Some(text) = rl
-                .message
-                .as_ref()
-                .and_then(|m| m.get("content"))
-                .and_then(Value::as_str)
-            {
-                let t = text.trim();
-                if !t.is_empty() {
-                    let ref_id = format!("prompt:{}", rl.uuid.clone().unwrap_or_default());
-                    let summary = format!("you asked: \"{}\"", truncate(t, 80));
-                    self.push(
-                        DecisionKind::UserPrompt,
-                        rl.timestamp.clone(),
-                        summary,
-                        Some(t.to_string()),
-                        ref_id,
-                    );
                 }
             }
         }
@@ -185,15 +163,6 @@ impl DecisionExtractor {
                         format!("skill:{id}"),
                     );
                 }
-                "Write" => {
-                    self.push(
-                        DecisionKind::FileWrite,
-                        ts,
-                        format!("wrote {}", basename(field("file_path"))),
-                        None,
-                        format!("write:{id}"),
-                    );
-                }
                 "ExitPlanMode" => {
                     self.push(
                         DecisionKind::PlanApproved,
@@ -206,10 +175,16 @@ impl DecisionExtractor {
                 "Bash" => {
                     let cmd = field("command");
                     if cmd.contains("git commit") {
+                        // Surface the actual commit message (first line) — far more
+                        // useful than a generic "committed changes".
+                        let summary = match commit_message(cmd) {
+                            Some(m) => format!("committed: {}", truncate(&m, 80)),
+                            None => "committed changes".to_string(),
+                        };
                         self.push(
                             DecisionKind::Commit,
                             ts,
-                            "committed changes".to_string(),
+                            summary,
                             Some(truncate(cmd, 100)),
                             format!("commit:{id}"),
                         );
@@ -251,6 +226,20 @@ impl DecisionExtractor {
     }
 }
 
+/// Pull the first `-m "msg"` / `-m 'msg'` message (first line only) out of a git
+/// commit command. Returns None when there's no quoted `-m` argument.
+fn commit_message(cmd: &str) -> Option<String> {
+    let after = cmd[cmd.find("-m")? + 2..].trim_start();
+    let mut chars = after.chars();
+    let quote = chars.next()?;
+    if quote != '"' && quote != '\'' {
+        return None;
+    }
+    let body: String = chars.take_while(|&c| c != quote).collect();
+    let first = body.lines().next().unwrap_or("").trim();
+    (!first.is_empty()).then(|| first.to_string())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -284,5 +273,24 @@ mod tests {
         assert_eq!(ex.events.len(), 1);
         assert_eq!(ex.events[0].kind, DecisionKind::PrOpened);
         assert_eq!(ex.events[0].summary, "opened PR #77 (me/app)");
+    }
+
+    #[test]
+    fn commit_surfaces_the_message() {
+        let mut ex = DecisionExtractor::new();
+        let commit = r#"{"type":"assistant","timestamp":"2026-06-03T21:00:00Z","message":{"role":"assistant","content":[{"type":"tool_use","id":"t1","name":"Bash","input":{"command":"git add -A && git commit -m \"fix: stop focus steal\""}}]}}"#;
+        ex.feed(&parse_line(commit).unwrap());
+        assert_eq!(ex.events.len(), 1);
+        assert_eq!(ex.events[0].kind, DecisionKind::Commit);
+        assert_eq!(ex.events[0].summary, "committed: fix: stop focus steal");
+    }
+
+    #[test]
+    fn commit_message_takes_first_line_only() {
+        assert_eq!(
+            commit_message("git commit -m \"feat: x\n\nbody line\""),
+            Some("feat: x".to_string())
+        );
+        assert_eq!(commit_message("git commit --amend"), None);
     }
 }

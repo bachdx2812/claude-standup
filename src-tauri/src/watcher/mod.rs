@@ -58,6 +58,15 @@ async fn run(app: tauri::AppHandle, state: AppState) {
     let mut last_emit = std::time::Instant::now()
         .checked_sub(Duration::from_secs(1))
         .unwrap_or_else(std::time::Instant::now);
+    // Recompute the account-wide 5h billing block on a slow cadence (its own file
+    // IO, decoupled from the 1s state scan). Start in the past so it runs at once.
+    const BLOCK_REFRESH: Duration = Duration::from_secs(30);
+    // Feed events from a bit over 5h back so the block's floored-hour start is
+    // never lost to the window filter.
+    const BLOCK_WINDOW_SECS: i64 = 6 * 3600;
+    let mut last_block = std::time::Instant::now()
+        .checked_sub(BLOCK_REFRESH)
+        .unwrap_or_else(std::time::Instant::now);
 
     loop {
         tokio::select! {
@@ -77,6 +86,15 @@ async fn run(app: tauri::AppHandle, state: AppState) {
         }
         if !result.needs_attention.is_empty() {
             crate::bridge::popup::on_needs_attention(&app, &state, &result.needs_attention);
+        }
+
+        if last_block.elapsed() >= BLOCK_REFRESH {
+            last_block = std::time::Instant::now();
+            let now = chrono::Utc::now().timestamp();
+            let events =
+                crate::transcript::history_scan::scan_recent_usage(now - BLOCK_WINDOW_SECS);
+            let block = crate::analysis::usage_blocks::active_block(&events, now);
+            crate::bridge::events::emit_block(&app, block);
         }
     }
 }

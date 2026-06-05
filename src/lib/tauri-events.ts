@@ -2,7 +2,7 @@
 
 import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
-import type { DecisionEvent, SessionSnapshot, Settings } from "./types";
+import type { BillingBlock, DecisionEvent, SessionSnapshot, Settings } from "./types";
 
 export const fetchSessions = (): Promise<SessionSnapshot[]> =>
   invoke<SessionSnapshot[]>("get_sessions");
@@ -26,3 +26,9 @@ export const onSessionsUpdate = (
   cb: (sessions: SessionSnapshot[]) => void,
 ): Promise<UnlistenFn> =>
   listen<SessionSnapshot[]>("sessions-update", (e) => cb(e.payload));
+
+/** Subscribe to the account-wide 5h billing block (null clears it). */
+export const onBlockUpdate = (
+  cb: (block: BillingBlock | null) => void,
+): Promise<UnlistenFn> =>
+  listen<BillingBlock | null>("block-update", (e) => cb(e.payload));

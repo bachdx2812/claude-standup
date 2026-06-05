@@ -28,13 +28,11 @@ export interface SessionSnapshot {
 }
 
 export type DecisionKind =
-  | "userPrompt"
   | "questionAnswered"
   | "prOpened"
   | "subagentSpawned"
   | "skillInvoked"
   | "commit"
-  | "fileWrite"
   | "planApproved"
   | "awaySummary";
 
@@ -49,4 +47,15 @@ export interface DecisionEvent {
 export interface Settings {
   autoPopup: boolean;
   snoozed: boolean;
+}
+
+/** Account-wide 5-hour billing block (from the Rust `block-update` event). */
+export interface BillingBlock {
+  startUnix: number;
+  endUnix: number;
+  tokens: number;
+  costUsd: number;
+  burnTokensPerMin: number;
+  resetsInSecs: number;
+  active: boolean;
 }

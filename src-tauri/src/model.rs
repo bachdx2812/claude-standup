@@ -52,13 +52,11 @@ pub struct SessionSnapshot {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum DecisionKind {
-    UserPrompt,
     QuestionAnswered,
     PrOpened,
     SubagentSpawned,
     SkillInvoked,
     Commit,
-    FileWrite,
     PlanApproved,
     AwaySummary,
 }

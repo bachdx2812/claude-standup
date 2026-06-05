@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { fetchSettings, setAutoPopup, snoozePopups } from "../lib/tauri-events";
-import { contextColor, formatCost } from "../lib/format";
+import { contextColor, fmtDuration, fmtTokensPerMin, formatCost } from "../lib/format";
+import type { BillingBlock } from "../lib/types";
 import { t, type Lang } from "../lib/i18n";
 import { useLang } from "../store/lang-store";
 import { checkForUpdate, type UpdateStatus } from "../lib/updater";
@@ -19,6 +20,8 @@ interface HeaderProps {
   streak: number;
   /** USD spent today across all sessions (delta-tracked). */
   todayCost: number;
+  /** Current account-wide 5h billing block (null when none/inactive). */
+  block: BillingBlock | null;
 }
 
 export default function Header({
@@ -30,6 +33,7 @@ export default function Header({
   maxContextPct,
   streak,
   todayCost,
+  block,
 }: HeaderProps) {
   const [autoPopup, setAuto] = useState(true);
   const [open, setOpen] = useState(false);
@@ -95,6 +99,16 @@ export default function Header({
       {todayCost > 0 && (
         <span className="status-chip today" title="Claude spend today">
           {formatCost(todayCost)} {t("today")}
+        </span>
+      )}
+      {block?.active && block.tokens > 0 && (
+        <span
+          className="status-chip block"
+          title={`5h usage block · ${formatCost(block.costUsd)} spent · resets ${new Date(
+            block.endUnix * 1000,
+          ).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · Claude Code activity only (no plan limit)`}
+        >
+          ⏳ {fmtDuration(block.resetsInSecs)} · {fmtTokensPerMin(block.burnTokensPerMin)}
         </span>
       )}
       <button

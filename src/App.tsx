@@ -5,7 +5,8 @@ import IsoOffice from "./components/IsoOffice";
 import DecisionTimeline from "./components/DecisionTimeline";
 import SessionSummary from "./components/SessionSummary";
 import SessionDetail from "./components/SessionDetail";
-import { fetchSessions, onSessionsUpdate } from "./lib/tauri-events";
+import { fetchSessions, onBlockUpdate, onSessionsUpdate } from "./lib/tauri-events";
+import type { BillingBlock } from "./lib/types";
 import { useSessions } from "./store/sessions-store";
 import { useLang } from "./store/lang-store";
 import { contextPct, nowSec } from "./lib/format";
@@ -20,6 +21,7 @@ export default function App() {
   const [selected, setSelected] = useState<string | null>(null);
   const [streak] = useState(() => tickStreak()); // daily streak, bumped once on load
   const [todayCost, setTodayCost] = useState(() => todaySpend());
+  const [block, setBlock] = useState<BillingBlock | null>(null);
   const prevDecisionsRef = useRef<Map<string, number>>(new Map());
   const seededXpRef = useRef(false);
   const prevCostRef = useRef<Map<string, number>>(new Map());
@@ -65,9 +67,11 @@ export default function App() {
 
   useEffect(() => {
     fetchSessions().then(setSessions).catch(() => {});
-    const unlisten = onSessionsUpdate(setSessions);
+    const unSessions = onSessionsUpdate(setSessions);
+    const unBlock = onBlockUpdate(setBlock);
     return () => {
-      unlisten.then((f) => f()).catch(() => {});
+      unSessions.then((f) => f()).catch(() => {});
+      unBlock.then((f) => f()).catch(() => {});
     };
   }, [setSessions]);
 
@@ -146,6 +150,7 @@ export default function App() {
         maxContextPct={maxContextPct}
         streak={streak}
         todayCost={todayCost}
+        block={block}
       />
       <div className="app-body">
         <div className="main-col">

@@ -75,6 +75,23 @@ export function formatCost(usd: number): string {
   return `$${usd.toFixed(2)}`;
 }
 
+/** Compact duration from seconds: `2h13m` / `47m` / `8s`. */
+export function fmtDuration(secs: number): string {
+  const s = Math.max(0, Math.floor(secs));
+  if (s >= 3600) {
+    return `${Math.floor(s / 3600)}h${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}m`;
+  }
+  if (s >= 60) return `${Math.floor(s / 60)}m`;
+  return `${s}s`;
+}
+
+/** Token burn rate: `12.4k tok/min` / `840 tok/min`. */
+export function fmtTokensPerMin(n: number): string {
+  if (!Number.isFinite(n) || n <= 0) return "0 tok/min";
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}k tok/min`;
+  return `${Math.round(n)} tok/min`;
+}
+
 /** Context-window usage %, or null when the limit is unknown (0). */
 export function contextPct(used: number, limit: number): number | null {
   if (!limit || limit <= 0) return null;
@@ -100,8 +117,6 @@ export function decisionIcon(kind: DecisionKind): string {
       return "✨";
     case "commit":
       return "✓";
-    case "fileWrite":
-      return "📝";
     case "planApproved":
       return "📋";
     case "awaySummary":
