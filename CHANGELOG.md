@@ -6,6 +6,16 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-06-05
+
+### Added
+
+- **Achievements** — unlock badges for milestones (3- and 7-day streaks, 5
+  sessions / 25 decisions / $50 in a day, reaching Senior and Principal). A
+  toast pops when you earn one, and your badges appear on the Recap card.
+- **Seasonal accent** — a small festive chip in the header on holidays (New
+  Year, Valentine's, late-October, December); nothing on ordinary days.
+
 ## [1.9.0] - 2026-06-05
 
 ### Added
