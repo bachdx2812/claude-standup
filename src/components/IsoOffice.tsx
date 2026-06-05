@@ -23,7 +23,8 @@ import type { SessionSnapshot } from "../lib/types";
 const COL_W = 220; // target px per column → drives responsive column count
 const MAX_COLS = 5;
 const BOSS_BASE_Y = 110; // boss stands here, centered near the top
-const DESK_TOP = 208; // first desk row baseline (clears the boss + its comic bubble)
+const DESK_TOP = 236; // first desk row baseline — sits low enough that a checked
+// desk's "CHECKING" pill (drawn at deskY-82) clears the boss + its label below it.
 const BOT_PAD = 46;
 const MIN_GAP = 98; // tightest row spacing before we allow scrolling
 const MAX_GAP = 128;
