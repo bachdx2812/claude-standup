@@ -6,6 +6,15 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.4.1] - 2026-06-05
+
+### Fixed
+
+- **Auto-popup no longer steals window focus.** When a session became active
+  the window forced itself to the front and grabbed keyboard focus, yanking you
+  out of whatever you were typing in. It now fires a notification only — click
+  it to bring the app forward when you want it.
+
 ## [1.4.0] - 2026-06-05
 
 ### Added
