@@ -11,7 +11,7 @@
 # or, straight from this file:
 #   brew install --cask ./Casks/claude-standup.rb
 cask "claude-standup" do
-  version "1.7.0"
+  version "1.7.1"
   sha256 :no_check
 
   url "https://github.com/bachdx2812/claude-standup/releases/download/v#{version}/Claude%20StandUp_#{version}_universal.dmg"

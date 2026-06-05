@@ -6,6 +6,14 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.7.1] - 2026-06-05
+
+### Fixed
+
+- The boss's command bubble now sits on the same side as the desk he's pointing
+  at (it agrees with the beam instead of contradicting it), and its awkward
+  comic tail is gone — the beam already shows the link.
+
 ## [1.7.0] - 2026-06-05
 
 ### Added
