@@ -6,6 +6,17 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.12.0] - 2026-06-09
+
+### Added
+
+- **Live activity feed** — the checked session's footer now has a second column
+  next to Key Decisions that streams the agent's raw tool use in real time
+  (Bash, file reads/writes, subagents, skills, web fetches, …) with a brief
+  detail + timestamp. Key Decisions stays the curated milestones; this is the
+  raw stream. Lightweight: a bounded per-session ring, fetched on demand for the
+  selected session only.
+
 ## [1.11.1] - 2026-06-05
 
 ### Fixed
