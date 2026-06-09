@@ -2,13 +2,22 @@
 
 import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
-import type { BillingBlock, DecisionEvent, SessionSnapshot, Settings } from "./types";
+import type {
+  ActivityEvent,
+  BillingBlock,
+  DecisionEvent,
+  SessionSnapshot,
+  Settings,
+} from "./types";
 
 export const fetchSessions = (): Promise<SessionSnapshot[]> =>
   invoke<SessionSnapshot[]>("get_sessions");
 
 export const fetchDecisions = (sessionId: string): Promise<DecisionEvent[]> =>
   invoke<DecisionEvent[]>("get_decisions", { sessionId });
+
+export const fetchActivity = (sessionId: string): Promise<ActivityEvent[]> =>
+  invoke<ActivityEvent[]>("get_activity", { sessionId });
 
 export const fetchSettings = (): Promise<Settings> => invoke<Settings>("get_settings");
 

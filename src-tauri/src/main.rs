@@ -39,6 +39,7 @@ fn main() {
             bridge::commands::toggle_window,
             bridge::commands::get_sessions,
             bridge::commands::get_decisions,
+            bridge::commands::get_activity,
             bridge::commands::get_settings,
             bridge::commands::set_auto_popup,
             bridge::commands::snooze_popups,

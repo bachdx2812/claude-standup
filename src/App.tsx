@@ -3,6 +3,7 @@ import Header from "./components/Header";
 import SessionCard from "./components/SessionCard";
 import IsoOffice from "./components/IsoOffice";
 import DecisionTimeline from "./components/DecisionTimeline";
+import ActivityLog from "./components/ActivityLog";
 import SessionSummary from "./components/SessionSummary";
 import SessionDetail from "./components/SessionDetail";
 import { fetchSessions, onBlockUpdate, onSessionsUpdate } from "./lib/tauri-events";
@@ -238,6 +239,7 @@ export default function App() {
               <div className="detail-resizer" onMouseDown={startResize} title="Drag to resize" />
               <SessionDetail key={selectedSession.id} session={selectedSession} />
               <DecisionTimeline session={selectedSession} />
+              <ActivityLog session={selectedSession} />
             </div>
           )}
         </div>

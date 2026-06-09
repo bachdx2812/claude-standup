@@ -44,6 +44,13 @@ export interface DecisionEvent {
   refId?: string | null;
 }
 
+/** One entry in the live tool-activity feed (raw tool_use stream). */
+export interface ActivityEvent {
+  tool: string;
+  detail: string;
+  timestamp?: string | null;
+}
+
 export interface Settings {
   autoPopup: boolean;
   snoozed: boolean;

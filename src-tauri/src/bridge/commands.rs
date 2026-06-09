@@ -1,7 +1,7 @@
 // Tauri commands invoked from the React frontend.
 
 use crate::app_state::AppState;
-use crate::model::{DecisionEvent, SessionSnapshot, SessionState};
+use crate::model::{ActivityEvent, DecisionEvent, SessionSnapshot, SessionState};
 use std::sync::atomic::Ordering::Relaxed;
 use tauri::State;
 
@@ -54,6 +54,19 @@ pub async fn get_decisions(
         .sessions
         .get(&session_id)
         .map(|r| r.extractor.events.clone())
+        .unwrap_or_default())
+}
+
+#[tauri::command]
+pub async fn get_activity(
+    session_id: String,
+    state: State<'_, AppState>,
+) -> Result<Vec<ActivityEvent>, ()> {
+    let reg = state.registry.read().await;
+    Ok(reg
+        .sessions
+        .get(&session_id)
+        .map(|r| r.activity.iter().cloned().collect())
         .unwrap_or_default())
 }
 

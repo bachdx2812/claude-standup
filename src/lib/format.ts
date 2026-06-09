@@ -105,6 +105,39 @@ export function contextColor(pct: number): string {
   return "rgba(148,163,184,0.85)"; // muted slate
 }
 
+/** Emoji for a tool in the live activity feed. */
+export function toolIcon(tool: string): string {
+  switch (tool) {
+    case "Bash":
+      return "🔧";
+    case "Read":
+      return "📖";
+    case "Write":
+      return "📝";
+    case "Edit":
+    case "MultiEdit":
+    case "NotebookEdit":
+      return "✏️";
+    case "Grep":
+    case "Glob":
+      return "🔍";
+    case "Task":
+    case "Agent":
+      return "🤖";
+    case "Skill":
+      return "✨";
+    case "WebFetch":
+    case "WebSearch":
+      return "🌐";
+    case "AskUserQuestion":
+      return "❓";
+    case "TodoWrite":
+      return "☑️";
+    default:
+      return "›";
+  }
+}
+
 export function decisionIcon(kind: DecisionKind): string {
   switch (kind) {
     case "questionAnswered":

@@ -7,7 +7,7 @@
 
 use crate::analysis::{self, decisions::DecisionExtractor};
 use crate::llm::pricing::{self, DEFAULT_CONTEXT_LIMIT};
-use crate::model::{SessionSnapshot, SessionState};
+use crate::model::{ActivityEvent, SessionSnapshot, SessionState};
 use crate::transcript::content_block::{tool_result_ids, tool_uses};
 use crate::transcript::RawLine;
 use crate::watcher::discovery::{self, SessionFile};
@@ -20,6 +20,8 @@ use tokio::sync::RwLock;
 
 /// How many recent raw lines to retain per session (enough for state/status).
 const RECENT_CAP: usize = 60;
+/// Cap on the live tool-activity feed retained per session.
+const ACTIVITY_CAP: usize = 50;
 
 #[derive(Default)]
 pub struct SessionRegistry {
@@ -70,6 +72,8 @@ pub struct SessionRuntime {
 
     /// Key-decisions extractor + timeline.
     pub extractor: DecisionExtractor,
+    /// Live tool-activity feed (bounded ring of recent tool_use events).
+    pub activity: VecDeque<ActivityEvent>,
 
     pub snapshot: SessionSnapshot,
 }
@@ -102,6 +106,7 @@ impl SessionRuntime {
             context_peak_tokens: 0,
             model: None,
             extractor: DecisionExtractor::new(),
+            activity: VecDeque::new(),
             snapshot: empty_snapshot(&sf.session_id, label),
         }
     }
@@ -149,6 +154,14 @@ impl SessionRuntime {
                         self.pending_question = true;
                     } else if let Some(id) = tu.id {
                         self.running_tool_ids.insert(id.to_string());
+                    }
+                    self.activity.push_back(ActivityEvent {
+                        tool: tu.name.to_string(),
+                        detail: analysis::tool_detail(tu.name, tu.input),
+                        timestamp: rl.timestamp.clone(),
+                    });
+                    while self.activity.len() > ACTIVITY_CAP {
+                        self.activity.pop_front();
                     }
                 }
                 self.accumulate_usage(msg);

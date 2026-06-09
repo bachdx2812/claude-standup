@@ -23,3 +23,38 @@ pub fn truncate(s: &str, max: usize) -> String {
 pub fn basename(path: &str) -> &str {
     path.rsplit(['/', '\\']).next().unwrap_or(path)
 }
+
+/// A short human detail for a tool_use, from its most descriptive input field.
+/// Used by the live activity feed.
+pub fn tool_detail(name: &str, input: &serde_json::Value) -> String {
+    let s = |k: &str| input.get(k).and_then(serde_json::Value::as_str).unwrap_or("");
+    match name {
+        "Bash" => truncate(s("command"), 60),
+        "Read" | "Write" | "Edit" | "MultiEdit" | "NotebookEdit" => {
+            basename(s("file_path")).to_string()
+        }
+        "Grep" | "Glob" => truncate(s("pattern"), 44),
+        "Task" | "Agent" => {
+            let (st, d) = (s("subagent_type"), s("description"));
+            if d.is_empty() {
+                st.to_string()
+            } else {
+                format!("{st}: {}", truncate(d, 40))
+            }
+        }
+        "Skill" => s("skill").to_string(),
+        "WebFetch" | "WebSearch" => {
+            truncate(if s("url").is_empty() { s("query") } else { s("url") }, 50)
+        }
+        "AskUserQuestion" => "asked you".to_string(),
+        _ => {
+            for k in ["command", "path", "query", "prompt", "description"] {
+                let v = s(k);
+                if !v.is_empty() {
+                    return truncate(v, 50);
+                }
+            }
+            String::new()
+        }
+    }
+}

@@ -73,6 +73,15 @@ pub struct DecisionEvent {
     pub ref_id: Option<String>,
 }
 
+/// One entry in a session's live tool-activity feed (raw tool_use stream).
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ActivityEvent {
+    pub tool: String,
+    pub detail: String,
+    pub timestamp: Option<String>,
+}
+
 impl SessionSnapshot {
     /// Surface this session: real content, not a stub or a temp summary run.
     /// Recency/visibility filtering lives in the UI.
